@@ -9,11 +9,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: PoolManager
-    network: mainnet-fork
+    network: sepolia
     source:
       abi: PoolManager
-      address: "0x000000000004444c5dc75cB358380D2e3dE08A90"
-      startBlock: 21688329
+      address: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
+      startBlock: 8273703
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -38,16 +38,13 @@ dataSources:
         - event: ModifyLiquidity(indexed bytes32,indexed
             address,int24,int24,int256,bytes32)
           handler: handleModifyLiquidity
-        - event: Swap(indexed bytes32,indexed
-            address,int128,int128,uint160,uint128,int24,uint24)
-          handler: handleSwap
   - kind: ethereum/contract
     name: PositionManager
-    network: mainnet-fork
+    network: sepolia
     source:
       abi: PositionManager
-      address: "0x390102D1D4cff14a54bBe7219AB22fe583109FFB"
-      startBlock: 22429882
+      address: "0x26eAE73734B0f6cb526f2Ddd227ea0C8c5901aA2"
+      startBlock: 8273703
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -67,11 +64,11 @@ dataSources:
           handler: handleTransfer
   - kind: ethereum/contract
     name: KittycornBank
-    network: mainnet-fork
+    network: sepolia
     source:
       abi: KittycornBank
-      address: "0xc78C603644b59CCbC869fa36B72adE24C9e04C40"
-      startBlock: 22429882
+      address: "0x7B7aC536fE387286BbbAd2b98cBf1c1D52C0DBe7"
+      startBlock: 8273703
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -80,6 +77,7 @@ dataSources:
       entities:
         - BorrowAsset
         - Token
+        - LiquidatePosition
       abis:
         - name: KittycornBank
           file: ./abis/KittycornBank.json
@@ -92,3 +90,6 @@ dataSources:
       eventHandlers:
         - event: SetConfigBorrowToken(indexed address,bool,uint256)
           handler: handleConfigBorrowToken
+        - event: LiquidatePosition(indexed uint256,indexed
+            uint256,address,uint256,uint256,uint256,uint256)
+          handler: handleLiquidatePosition
