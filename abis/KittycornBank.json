@@ -1739,12 +1739,6 @@
         "internalType": "uint256"
       },
       {
-        "name": "owner",
-        "type": "address",
-        "indexed": true,
-        "internalType": "address"
-      },
-      {
         "name": "repayToken",
         "type": "address",
         "indexed": false,

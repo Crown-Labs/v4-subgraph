@@ -5,11 +5,13 @@ import { Position, Transfer } from '../types/schema'
 import { loadTransaction } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { eventId, positionId } from '../utils/id'
+import { handleLiquidatePositionHelper } from './bank'
 
 // The subgraph handler must have this signature to be able to handle events,
 // however, we invoke a helper in order to inject dependencies for unit tests.
 export function handleTransfer(event: TransferEvent): void {
   handleTransferHelper(event)
+  handleLiquidatePositionHelper()
 }
 
 export function handleTransferHelper(event: TransferEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
