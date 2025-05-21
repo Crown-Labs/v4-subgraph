@@ -510,8 +510,11 @@ type LiquidatePosition @entity {
   repayToken: Bytes!
   liquidatePrice: BigInt!
   positionValue: BigInt!
+  repayValue: BigInt!
   liquidateFeeValue: BigInt!
   protocolFee: BigInt!
+  txHash: Bytes!
+  timestamp: BigInt!
 }
 
 type LiquidationPositionDaily @entity {
@@ -520,4 +523,15 @@ type LiquidationPositionDaily @entity {
   liquidateValueAccumulate: BigInt!
   liquidateFeeValueAccumulate: BigInt!
   protocolFeeAccumulate: BigInt!
+}
+
+type BankPosition @entity {
+  id: ID!
+  tokenId: BigInt!
+  positionId: BigInt!
+  token0: Bytes!
+  token1: Bytes!
+  fee: BigInt!
+  tickSpacing: BigInt!
+  hooks: Bytes!
 }

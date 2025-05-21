@@ -13,7 +13,7 @@ dataSources:
     source:
       abi: PoolManager
       address: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
-      startBlock: 7258946
+      startBlock: 8368575
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -47,7 +47,7 @@ dataSources:
     source:
       abi: PositionManager
       address: "0x2fC120eA9104fC97632bEb3Fb84061471E8f6826"
-      startBlock: 8368539
+      startBlock: 8368575
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -71,7 +71,7 @@ dataSources:
     source:
       abi: KittycornBank
       address: "0x294CcC71134c9131A8fF7e092b8Ec2E288E2c01C"
-      startBlock: 8368539
+      startBlock: 8368575
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -93,6 +93,3 @@ dataSources:
       eventHandlers:
         - event: SetConfigBorrowToken(indexed address,bool,uint256)
           handler: handleConfigBorrowToken
-        - event: LiquidatePosition(indexed uint256,indexed uint256,indexed
-            address,address,uint256,uint256,uint256,uint256,uint256)
-          handler: handleLiquidatePosition
