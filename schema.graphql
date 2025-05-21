@@ -500,3 +500,24 @@ type BorrowAsset @entity {
   allowBorrow: Boolean!
   borrowFee: BigInt!
 }
+
+type LiquidatePosition @entity {
+  id: ID!
+  positionId: BigInt!
+  tokenId: BigInt!
+  owner: Bytes!
+  liquidator: Bytes!
+  repayToken: Bytes!
+  liquidatePrice: BigInt!
+  positionValue: BigInt!
+  liquidateFeeValue: BigInt!
+  protocolFee: BigInt!
+}
+
+type LiquidationPositionDaily @entity {
+  id: ID!
+  totalCount: BigInt!
+  liquidateValueAccumulate: BigInt!
+  liquidateFeeValueAccumulate: BigInt!
+  protocolFeeAccumulate: BigInt!
+}
