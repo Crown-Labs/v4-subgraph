@@ -1,15 +1,22 @@
-import { log } from '@graphprotocol/graph-ts'
+import { BigInt, log } from '@graphprotocol/graph-ts'
 
-import { SetConfigBorrowToken as SetConfigBorrowTokenEvent } from '../types/KittycornBank/KittycornBank'
-import { BorrowAsset, Token } from '../types/schema'
+import {
+  LiquidatePosition as LiquidatePositionEvent,
+  SetConfigBorrowToken as SetConfigBorrowTokenEvent,
+} from '../types/KittycornBank/KittycornBank'
+import { BorrowAsset, LiquidatePosition, LiquidationPositionDaily, Token } from '../types/schema'
+import { exponentToBigDecimal } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ZERO_BD, ZERO_BI } from '../utils/constants'
+import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
-
 // The subgraph handler must have this signature to be able to handle events,
 // however, we invoke a helper in order to inject dependencies for unit tests.
 export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void {
   handleConfigBorrowTokenHelper(event)
+}
+
+export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
+  handleLiquidatePositionHelper(event)
 }
 
 export function handleConfigBorrowTokenHelper(
@@ -67,4 +74,83 @@ export function handleConfigBorrowTokenHelper(
 
   token.save()
   borrowAsset.save()
+}
+
+export function handleLiquidatePositionHelper(
+  event: LiquidatePositionEvent,
+  subgraphConfig: SubgraphConfig = getSubgraphConfig(),
+): void {
+  // concat tokenId and positionId
+  const tokenId = event.params.tokenId.toString()
+  const positionId = event.params.positionId.toString()
+
+  const id = tokenId + '-' + positionId
+  let position = LiquidatePosition.load(id)
+
+  if (position === null) {
+    position = new LiquidatePosition(id)
+    position.positionId = ZERO_BI
+    position.tokenId = ZERO_BI
+    position.owner = ADDRESS_ZERO
+    position.liquidator = ADDRESS_ZERO
+    position.repayToken = ADDRESS_ZERO
+    position.liquidatePrice = ZERO_BI
+    position.positionValue = ZERO_BI
+    position.repayValue = ZERO_BI
+    position.liquidateFeeValue = ZERO_BI
+    position.protocolFee = ZERO_BI
+    position.txHash = ADDRESS_ZERO
+    position.timestamp = ZERO_BI
+  }
+  const decimalsToken = fetchTokenDecimals(
+    event.params.repayToken,
+    subgraphConfig.tokenOverrides,
+    subgraphConfig.nativeTokenDetails,
+  )
+  // bail if we couldn't figure out the decimals
+  if (decimalsToken === null) {
+    log.debug('mybug the decimal on token was null', [])
+    return
+  }
+
+  // calculating repayValue with bigdecimal
+  const repayValue = event.params.liquidateRepayAmount
+    .toBigDecimal()
+    .times(event.params.liquidatePrice.toBigDecimal())
+    .div(exponentToBigDecimal(decimalsToken))
+
+  position.positionId = event.params.positionId
+  position.tokenId = event.params.tokenId
+  position.owner = event.params.owner.toHexString()
+  position.liquidator = event.transaction.from.toHexString()
+  position.repayToken = event.params.repayToken.toHexString()
+  position.liquidatePrice = event.params.liquidatePrice
+  position.positionValue = event.params.positionValue
+  position.repayValue = BigInt.fromString(repayValue.toString())
+  position.liquidateFeeValue = event.params.liquidateFeeValue
+  position.protocolFee = event.params.protocolFee
+  position.txHash = event.transaction.hash.toHexString()
+  position.timestamp = event.block.timestamp
+
+  position.save()
+
+  const timestamp = event.block.timestamp.toI32()
+
+  const dayID = timestamp / 86400 // rounded
+  const dayStartTimestamp = dayID * 86400
+
+  let positionDaily = LiquidationPositionDaily.load(dayStartTimestamp.toString())
+  if (positionDaily === null) {
+    positionDaily = new LiquidationPositionDaily(dayStartTimestamp.toString())
+    positionDaily.totalCount = ZERO_BI
+    positionDaily.liquidateValueAccumulate = ZERO_BI
+    positionDaily.liquidateFeeValueAccumulate = ZERO_BI
+    positionDaily.protocolFeeAccumulate = ZERO_BI
+  }
+  positionDaily.totalCount = positionDaily.totalCount.plus(ONE_BI)
+  positionDaily.liquidateValueAccumulate = positionDaily.liquidateValueAccumulate.plus(position.positionValue)
+  positionDaily.liquidateFeeValueAccumulate = positionDaily.liquidateFeeValueAccumulate.plus(position.liquidateFeeValue)
+  positionDaily.protocolFeeAccumulate = positionDaily.protocolFeeAccumulate.plus(position.protocolFee)
+
+  positionDaily.save()
 }
