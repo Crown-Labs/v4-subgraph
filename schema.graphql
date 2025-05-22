@@ -505,15 +505,15 @@ type LiquidatePosition @entity {
   id: ID!
   positionId: BigInt!
   tokenId: BigInt!
-  owner: Bytes!
-  liquidator: Bytes!
-  repayToken: Bytes!
+  owner: String!
+  liquidator: String!
+  repayToken: String!
   liquidatePrice: BigInt!
   positionValue: BigInt!
   repayValue: BigInt!
   liquidateFeeValue: BigInt!
   protocolFee: BigInt!
-  txHash: Bytes!
+  txHash: String!
   timestamp: BigInt!
 }
 
@@ -523,15 +523,4 @@ type LiquidationPositionDaily @entity {
   liquidateValueAccumulate: BigInt!
   liquidateFeeValueAccumulate: BigInt!
   protocolFeeAccumulate: BigInt!
-}
-
-type BankPosition @entity {
-  id: ID!
-  tokenId: BigInt!
-  positionId: BigInt!
-  token0: Bytes!
-  token1: Bytes!
-  fee: BigInt!
-  tickSpacing: BigInt!
-  hooks: Bytes!
 }
