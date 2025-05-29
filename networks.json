@@ -2,7 +2,7 @@
   "sepolia": {
     "PoolManager": {
       "address": "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543",
-      "startBlock": 8368575
+      "startBlock": 8409420
     },
     "PositionManager": {
       "address": "0xff92b1dCB26C83C9629bDFd61bc2416cbA85d568",
