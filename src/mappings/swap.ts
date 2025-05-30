@@ -24,7 +24,6 @@ export function handleSwap(event: SwapEvent): void {
 }
 
 export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
-  return
   const poolManagerAddress = subgraphConfig.poolManagerAddress
   const stablecoinWrappedNativePoolId = subgraphConfig.stablecoinWrappedNativePoolId
   const stablecoinIsToken0 = subgraphConfig.stablecoinIsToken0
