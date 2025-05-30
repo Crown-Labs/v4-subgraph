@@ -6,7 +6,6 @@ import {
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
 } from '../types/KittycornBank/KittycornBank'
 import {
-  BankPosition,
   BorrowAsset,
   LiquidatePosition,
   LiquidationPositionDaily,
@@ -16,7 +15,7 @@ import {
 } from '../types/schema'
 import { exponentToBigDecimal } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 // import { fetchGetPoolAndPositionInfo } from '../utils/position'
 // The subgraph handler must have this signature to be able to handle events,
@@ -201,6 +200,7 @@ export function handleLiquidatePositionHelper(
   liqPosition.tickUpper = mappingTokenIdPool.tickUpper
   liqPosition.sqrtPrice = pool.sqrtPrice
   liqPosition.tick = ZERO_BI
+  liqPosition.poolId = pool.id
 
   const timestamp = event.block.timestamp.toI32()
 
@@ -237,22 +237,22 @@ export function handleEnableCollateralHelper(event: EnableCollateralEvent): void
   //   event.params.positionId.toString(),
   // ])
 
-  const tokenId = event.params.tokenId.toString()
-  const positionId = event.params.positionId.toString()
+  event.params.tokenId.toString()
+  // const positionId = event.params.positionId.toString()
 
-  const id = tokenId + '-' + positionId
-  let bankPosition = BankliqPosition.load(id)
-  if (bankPosition === null) {
-    bankPosition = new BankPosition(id)
-    bankliqPosition.tokenId = ZERO_BI
-    bankliqPosition.positionId = ZERO_BI
-    bankliqPosition.currency0 = ADDRESS_ZERO
-    bankliqPosition.currency1 = ADDRESS_ZERO
-    bankliqPosition.fee = ZERO_BI
-    bankliqPosition.tickSpacing = ZERO_BI
-    bankliqPosition.hooks = ADDRESS_ZERO
-    bankliqPosition.positionInfo = ZERO_BI
-  }
+  // const id = tokenId + '-' + positionId
+  // let bankPosition = BankliqPosition.load(id)
+  // if (bankPosition === null) {
+  //   bankPosition = new BankPosition(id)
+  //   bankliqPosition.tokenId = ZERO_BI
+  //   bankliqPosition.positionId = ZERO_BI
+  //   bankliqPosition.currency0 = ADDRESS_ZERO
+  //   bankliqPosition.currency1 = ADDRESS_ZERO
+  //   bankliqPosition.fee = ZERO_BI
+  //   bankliqPosition.tickSpacing = ZERO_BI
+  //   bankliqPosition.hooks = ADDRESS_ZERO
+  //   bankliqPosition.positionInfo = ZERO_BI
+  // }
 
   // fetch poolKey by tokenId
   // const poolKey = fetchGetPoolAndPositionInfo(
@@ -359,5 +359,5 @@ export function handleEnableCollateralHelper(event: EnableCollateralEvent): void
   // bankliqPosition.hooks = ADDRESS_ZERO
   // token0.save()
   // token1.save()
-  bankliqPosition.save()
+  // bankliqPosition.save()
 }

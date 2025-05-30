@@ -524,6 +524,7 @@ type LiquidatePosition @entity {
   tickUpper: BigInt!
   sqrtPrice: BigInt!
   tick: BigInt!
+  poolId: String!
 }
 
 type LiquidationPositionDaily @entity {
