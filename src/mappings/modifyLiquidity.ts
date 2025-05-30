@@ -166,7 +166,6 @@ export function handleModifyLiquidityHelper(
 
     // Convert salt (Bytes) to BigInt
     const salt = event.params.salt.toHexString()
-
     const saltBigInt = hexToBigInt(salt)
     const tokenId = saltBigInt.toString()
 

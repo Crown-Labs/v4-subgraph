@@ -10,7 +10,6 @@ import { exponentToBigDecimal } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
-// import { fetchGetPoolAndPositionInfo } from '../utils/position'
 // The subgraph handler must have this signature to be able to handle events,
 // however, we invoke a helper in order to inject dependencies for unit tests.
 export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void {
@@ -218,4 +217,139 @@ export function handleLiquidatePositionHelper(
   liqPosition.save()
   positionDaily.save()
   repayToken.save()
+}
+
+export function handleEnableCollateralHelper(event: EnableCollateralEvent): void {
+  return
+  // const tokenOverrides = subgraphConfig.tokenOverrides
+  // const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  // log.info('handleEnableCollateralHelper', [])
+  // log.info('event.params.tokenId: {}, event.params.positionId: {}', [
+  //   event.params.tokenId.toString(),
+  //   event.params.positionId.toString(),
+  // ])
+
+  event.params.tokenId.toString()
+  // const positionId = event.params.positionId.toString()
+
+  // const id = tokenId + '-' + positionId
+  // let bankPosition = BankPosition.load(id)
+  // if (bankPosition === null) {
+  //   bankPosition = new BankPosition(id)
+  //   bankPosition.tokenId = ZERO_BI
+  //   bankPosition.positionId = ZERO_BI
+  //   bankPosition.currency0 = ADDRESS_ZERO
+  //   bankPosition.currency1 = ADDRESS_ZERO
+  //   bankPosition.fee = ZERO_BI
+  //   bankPosition.tickSpacing = ZERO_BI
+  //   bankPosition.hooks = ADDRESS_ZERO
+  //   bankPosition.positionInfo = ZERO_BI
+  // }
+
+  // fetch poolKey by tokenId
+  // const poolKey = fetchGetPoolAndPositionInfo(
+  //   Address.fromString(subgraphConfig.kittycornPositionManagerAddress),
+  //   event.params.tokenId,
+  // )
+  // if (poolKey === null) {
+  //   log.debug('mybug the poolKey was null', [])
+  //   return
+  // }
+  // load token0 and token1
+  // let token0 = Token.load(poolKey.currency0)
+  // let token1 = Token.load(poolKey.currency1)
+
+  // fetch info if null
+  // if (token0 === null) {
+  //   // log.info('token0=============================================', [])
+  //   token0 = new Token(poolKey.currency0)
+  //   token0.symbol = fetchTokenSymbol(Address.fromString(poolKey.currency0), tokenOverrides, nativeTokenDetails)
+  //   token0.name = fetchTokenName(Address.fromString(poolKey.currency0), tokenOverrides, nativeTokenDetails)
+  //   token0.totalSupply = fetchTokenTotalSupply(Address.fromString(poolKey.currency0))
+  //   const decimals = fetchTokenDecimals(Address.fromString(poolKey.currency0), tokenOverrides, nativeTokenDetails)
+
+  //   // bail if we couldn't figure out the decimals
+  //   if (decimals === null) {
+  //     log.debug('mybug the decimal on token 0 was null', [])
+  //     return
+  //   }
+
+  //   token0.decimals = decimals
+  //   token0.derivedETH = ZERO_BD
+  //   token0.volume = ZERO_BD
+  //   token0.volumeUSD = ZERO_BD
+  //   token0.feesUSD = ZERO_BD
+  //   token0.untrackedVolumeUSD = ZERO_BD
+  //   token0.totalValueLocked = ZERO_BD
+  //   token0.totalValueLockedUSD = ZERO_BD
+  //   token0.totalValueLockedUSDUntracked = ZERO_BD
+  //   token0.txCount = ZERO_BI
+  //   token0.poolCount = ZERO_BI
+  //   token0.whitelistPools = []
+  // }
+  // if (token1 === null) {
+  //   // log.info('token1=============================================', [])
+  //   token1 = new Token(poolKey.currency1)
+  //   token1.symbol = fetchTokenSymbol(Address.fromString(poolKey.currency1), tokenOverrides, nativeTokenDetails)
+  //   token1.name = fetchTokenName(Address.fromString(poolKey.currency1), tokenOverrides, nativeTokenDetails)
+  //   token1.totalSupply = fetchTokenTotalSupply(Address.fromString(poolKey.currency1))
+  //   const decimals = fetchTokenDecimals(Address.fromString(poolKey.currency1), tokenOverrides, nativeTokenDetails)
+
+  //   if (decimals === null) {
+  //     log.debug('mybug the decimal on token 1 was null', [])
+  //     return
+  //   }
+
+  //   token1.decimals = decimals
+  //   token1.derivedETH = ZERO_BD
+  //   token1.volume = ZERO_BD
+  //   token1.volumeUSD = ZERO_BD
+  //   token1.untrackedVolumeUSD = ZERO_BD
+  //   token1.feesUSD = ZERO_BD
+  //   token1.totalValueLocked = ZERO_BD
+  //   token1.totalValueLockedUSD = ZERO_BD
+  //   token1.totalValueLockedUSDUntracked = ZERO_BD
+  //   token1.txCount = ZERO_BI
+  //   token1.poolCount = ZERO_BI
+  //   token1.whitelistPools = []
+  // }
+  // log.info('handleEnableCollateralHelper: token0.id: {}', [Address.fromString(token0.id).toHexString()])
+  // log.info('handleEnableCollateralHelper: token1.id: {}', [Address.fromString(token1.id).toHexString()])
+  // log.info('handleEnableCollateralHelper: poolKey.fee: {}', [poolKey.fee.toString()])
+  // log.info('handleEnableCollateralHelper: poolKey.tickSpacing: {}', [poolKey.tickSpacing.toString()])
+  // log.info('handleEnableCollateralHelper: poolKey.hooks: {}', [Address.fromString(poolKey.hooks).toHexString()])
+
+  // bankPosition.tokenId = event.params.tokenId
+  // bankPosition.positionId = event.params.positionId
+  // bankPosition.currency0 = Address.fromString(token0.id).toHexString()
+  // bankPosition.currency1 = Address.fromString(token1.id).toHexString()
+  // bankPosition.fee = poolKey.fee
+  // bankPosition.tickSpacing = poolKey.tickSpacing
+  // bankPosition.hooks = poolKey.hooks.toHexString()
+  // bankPosition.positionInfo = poolKey.positionInfo
+
+  // log.info('handleEnableCollateralHelper: bankPosition: {}', [bankPosition.id])
+  // log.info('handleEnableCollateralHelper: bankPosition.tokenId: {}, bankPosition.positionId: {}', [
+  //   bankPosition.tokenId.toString(),
+  //   bankPosition.positionId.toString(),
+  // ])
+  // log.info('handleEnableCollateralHelper: bankPosition.currency0: {}, bankPosition.currency1: {}', [
+  //   bankPosition.currency0,
+  //   bankPosition.currency1,
+  // ])
+  // log.info('handleEnableCollateralHelper: bankPosition.fee: {}, bankPosition.tickSpacing: {}', [
+  //   bankPosition.fee.toString(),
+  //   bankPosition.tickSpacing.toString(),
+  // ])
+
+  // bankPosition.tokenId = BigInt.fromString('1')
+  // bankPosition.positionId = BigInt.fromString('1')
+  // bankPosition.currency0 = ADDRESS_ZERO
+  // bankPosition.currency1 = ADDRESS_ZERO
+  // bankPosition.fee = ZERO_BI
+  // bankPosition.tickSpacing = ZERO_BI
+  // bankPosition.hooks = ADDRESS_ZERO
+  // token0.save()
+  // token1.save()
+  // bankPosition.save()
 }
