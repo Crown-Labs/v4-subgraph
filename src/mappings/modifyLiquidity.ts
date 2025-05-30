@@ -1,7 +1,7 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
-import { Bundle, MappingTokenIdPool, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
+import { Bundle, LiquidityPosition, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
 import { convertTokenToDecimal, hexToBigInt, loadTransaction } from '../utils/index'
@@ -165,24 +165,21 @@ export function handleModifyLiquidityHelper(
     updateTokenHourData(token1, event)
 
     // Convert salt (Bytes) to BigInt
-    // log.info('tx hash: {}', [event.transaction.hash.toHexString()])
-    // log.info('tokenId salt as BigInt: {}', [event.params.salt.toString()])
-    // log.info('tokenId salt as Bytes: {}', [event.params.salt.toHexString()])
     const salt = event.params.salt.toHexString()
 
     const saltBigInt = hexToBigInt(salt)
     const tokenId = saltBigInt.toString()
 
     if (event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))) {
-      let mapping = MappingTokenIdPool.load(tokenId)
-      if (mapping === null) {
-        mapping = new MappingTokenIdPool(tokenId)
-        mapping.tokenId = BigInt.fromString(tokenId)
-        mapping.pool = pool.id
-        mapping.tickLower = modifyLiquidity.tickLower
-        mapping.tickUpper = modifyLiquidity.tickUpper
+      let liquidityPosition = LiquidityPosition.load(tokenId)
+      if (liquidityPosition === null) {
+        liquidityPosition = new LiquidityPosition(tokenId)
+        liquidityPosition.tokenId = BigInt.fromString(tokenId)
+        liquidityPosition.pool = pool.id
+        liquidityPosition.tickLower = modifyLiquidity.tickLower
+        liquidityPosition.tickUpper = modifyLiquidity.tickUpper
       }
-      mapping.save()
+      liquidityPosition.save()
     }
 
     token0.save()

@@ -5,14 +5,7 @@ import {
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
 } from '../types/KittycornBank/KittycornBank'
-import {
-  BorrowAsset,
-  LiquidatePosition,
-  LiquidationPositionDaily,
-  MappingTokenIdPool,
-  Pool,
-  Token,
-} from '../types/schema'
+import { BorrowAsset, LiquidatePosition, LiquidatePositionDaily, LiquidityPosition, Pool, Token } from '../types/schema'
 import { exponentToBigDecimal } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
@@ -97,16 +90,16 @@ export function handleLiquidatePositionHelper(
   const tokenId = event.params.tokenId.toString()
   const positionId = event.params.positionId.toString()
 
-  const mappingTokenIdPool = MappingTokenIdPool.load(tokenId)
+  const liquidityPosition = LiquidityPosition.load(tokenId)
 
-  if (mappingTokenIdPool === null) {
-    log.error('handleLiquidatePositionHelper: mappingTokenIdPool not found for tokenId {}', [tokenId])
+  if (liquidityPosition === null) {
+    log.error('handleLiquidatePositionHelper: liquidityPosition not found for tokenId {}', [tokenId])
     return
   }
 
-  const pool = Pool.load(mappingTokenIdPool.pool)
+  const pool = Pool.load(liquidityPosition.pool)
   if (pool === null) {
-    log.error('handleLiquidatePositionHelper: pool not found for poolId {}', [mappingTokenIdPool.pool])
+    log.error('handleLiquidatePositionHelper: pool not found for poolId {}', [liquidityPosition.pool])
     return
   }
 
@@ -155,7 +148,7 @@ export function handleLiquidatePositionHelper(
   const token1 = Token.load(pool.token1)
 
   if (token0 === null || token1 === null || repayToken === null) {
-    log.error('handleLiquidatePositionHelper: token0 or token1 not found for poolId {}', [mappingTokenIdPool.pool])
+    log.error('handleLiquidatePositionHelper: token0 or token1 not found for poolId {}', [liquidityPosition.pool])
     return
   }
 
@@ -196,8 +189,8 @@ export function handleLiquidatePositionHelper(
   liqPosition.feeTier = pool.feeTier
   liqPosition.tickSpacing = pool.tickSpacing
   liqPosition.hooks = pool.hooks
-  liqPosition.tickLower = mappingTokenIdPool.tickLower
-  liqPosition.tickUpper = mappingTokenIdPool.tickUpper
+  liqPosition.tickLower = liquidityPosition.tickLower
+  liqPosition.tickUpper = liquidityPosition.tickUpper
   liqPosition.sqrtPrice = pool.sqrtPrice
   liqPosition.tick = ZERO_BI
   liqPosition.poolId = pool.id
@@ -207,9 +200,9 @@ export function handleLiquidatePositionHelper(
   const dayID = timestamp / 86400 // rounded
   const dayStartTimestamp = dayID * 86400
 
-  let positionDaily = LiquidationPositionDaily.load(dayStartTimestamp.toString())
+  let positionDaily = LiquidatePositionDaily.load(dayStartTimestamp.toString())
   if (positionDaily === null) {
-    positionDaily = new LiquidationPositionDaily(dayStartTimestamp.toString())
+    positionDaily = new LiquidatePositionDaily(dayStartTimestamp.toString())
     positionDaily.totalCount = ZERO_BI
     positionDaily.liquidateValueAccumulate = ZERO_BI
     positionDaily.liquidateFeeValueAccumulate = ZERO_BI
@@ -241,17 +234,17 @@ export function handleEnableCollateralHelper(event: EnableCollateralEvent): void
   // const positionId = event.params.positionId.toString()
 
   // const id = tokenId + '-' + positionId
-  // let bankPosition = BankliqPosition.load(id)
+  // let bankPosition = BankPosition.load(id)
   // if (bankPosition === null) {
   //   bankPosition = new BankPosition(id)
-  //   bankliqPosition.tokenId = ZERO_BI
-  //   bankliqPosition.positionId = ZERO_BI
-  //   bankliqPosition.currency0 = ADDRESS_ZERO
-  //   bankliqPosition.currency1 = ADDRESS_ZERO
-  //   bankliqPosition.fee = ZERO_BI
-  //   bankliqPosition.tickSpacing = ZERO_BI
-  //   bankliqPosition.hooks = ADDRESS_ZERO
-  //   bankliqPosition.positionInfo = ZERO_BI
+  //   bankPosition.tokenId = ZERO_BI
+  //   bankPosition.positionId = ZERO_BI
+  //   bankPosition.currency0 = ADDRESS_ZERO
+  //   bankPosition.currency1 = ADDRESS_ZERO
+  //   bankPosition.fee = ZERO_BI
+  //   bankPosition.tickSpacing = ZERO_BI
+  //   bankPosition.hooks = ADDRESS_ZERO
+  //   bankPosition.positionInfo = ZERO_BI
   // }
 
   // fetch poolKey by tokenId
@@ -327,37 +320,37 @@ export function handleEnableCollateralHelper(event: EnableCollateralEvent): void
   // log.info('handleEnableCollateralHelper: poolKey.tickSpacing: {}', [poolKey.tickSpacing.toString()])
   // log.info('handleEnableCollateralHelper: poolKey.hooks: {}', [Address.fromString(poolKey.hooks).toHexString()])
 
-  // bankliqPosition.tokenId = event.params.tokenId
-  // bankliqPosition.positionId = event.params.positionId
-  // bankliqPosition.currency0 = Address.fromString(token0.id).toHexString()
-  // bankliqPosition.currency1 = Address.fromString(token1.id).toHexString()
-  // bankliqPosition.fee = poolKey.fee
-  // bankliqPosition.tickSpacing = poolKey.tickSpacing
-  // bankliqPosition.hooks = poolKey.hooks.toHexString()
-  // bankliqPosition.positionInfo = poolKey.positionInfo
+  // bankPosition.tokenId = event.params.tokenId
+  // bankPosition.positionId = event.params.positionId
+  // bankPosition.currency0 = Address.fromString(token0.id).toHexString()
+  // bankPosition.currency1 = Address.fromString(token1.id).toHexString()
+  // bankPosition.fee = poolKey.fee
+  // bankPosition.tickSpacing = poolKey.tickSpacing
+  // bankPosition.hooks = poolKey.hooks.toHexString()
+  // bankPosition.positionInfo = poolKey.positionInfo
 
-  // log.info('handleEnableCollateralHelper: bankPosition: {}', [bankliqPosition.id])
-  // log.info('handleEnableCollateralHelper: bankliqPosition.tokenId: {}, bankliqPosition.positionId: {}', [
-  //   bankliqPosition.tokenId.toString(),
-  //   bankliqPosition.positionId.toString(),
+  // log.info('handleEnableCollateralHelper: bankPosition: {}', [bankPosition.id])
+  // log.info('handleEnableCollateralHelper: bankPosition.tokenId: {}, bankPosition.positionId: {}', [
+  //   bankPosition.tokenId.toString(),
+  //   bankPosition.positionId.toString(),
   // ])
-  // log.info('handleEnableCollateralHelper: bankliqPosition.currency0: {}, bankliqPosition.currency1: {}', [
-  //   bankliqPosition.currency0,
-  //   bankliqPosition.currency1,
+  // log.info('handleEnableCollateralHelper: bankPosition.currency0: {}, bankPosition.currency1: {}', [
+  //   bankPosition.currency0,
+  //   bankPosition.currency1,
   // ])
-  // log.info('handleEnableCollateralHelper: bankliqPosition.fee: {}, bankliqPosition.tickSpacing: {}', [
-  //   bankliqPosition.fee.toString(),
-  //   bankliqPosition.tickSpacing.toString(),
+  // log.info('handleEnableCollateralHelper: bankPosition.fee: {}, bankPosition.tickSpacing: {}', [
+  //   bankPosition.fee.toString(),
+  //   bankPosition.tickSpacing.toString(),
   // ])
 
-  // bankliqPosition.tokenId = BigInt.fromString('1')
-  // bankliqPosition.positionId = BigInt.fromString('1')
-  // bankliqPosition.currency0 = ADDRESS_ZERO
-  // bankliqPosition.currency1 = ADDRESS_ZERO
-  // bankliqPosition.fee = ZERO_BI
-  // bankliqPosition.tickSpacing = ZERO_BI
-  // bankliqPosition.hooks = ADDRESS_ZERO
+  // bankPosition.tokenId = BigInt.fromString('1')
+  // bankPosition.positionId = BigInt.fromString('1')
+  // bankPosition.currency0 = ADDRESS_ZERO
+  // bankPosition.currency1 = ADDRESS_ZERO
+  // bankPosition.fee = ZERO_BI
+  // bankPosition.tickSpacing = ZERO_BI
+  // bankPosition.hooks = ADDRESS_ZERO
   // token0.save()
   // token1.save()
-  // bankliqPosition.save()
+  // bankPosition.save()
 }

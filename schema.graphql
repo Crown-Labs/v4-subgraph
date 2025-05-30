@@ -527,12 +527,20 @@ type LiquidatePosition @entity {
   poolId: String!
 }
 
-type LiquidationPositionDaily @entity {
+type LiquidatePositionDaily @entity {
   id: ID!
   totalCount: BigInt!
   liquidateValueAccumulate: BigInt!
   liquidateFeeValueAccumulate: BigInt!
   protocolFeeAccumulate: BigInt!
+}
+
+type LiquidityPosition @entity {
+  id: ID!
+  tokenId: BigInt!
+  pool: Pool!
+  tickLower: BigInt!
+  tickUpper: BigInt!
 }
 
 type BankPosition @entity {
@@ -547,10 +555,3 @@ type BankPosition @entity {
   positionInfo: BigInt!
 }
 
-type MappingTokenIdPool @entity {
-  id: ID!
-  tokenId: BigInt!
-  pool: Pool!
-  tickLower: BigInt!
-  tickUpper: BigInt!
-}
