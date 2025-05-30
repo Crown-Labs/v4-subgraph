@@ -1,7 +1,6 @@
 import { BigInt, log } from '@graphprotocol/graph-ts'
 
 import {
-  EnableCollateral as EnableCollateralEvent,
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
 } from '../types/KittycornBank/KittycornBank'
@@ -18,10 +17,6 @@ export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void 
 
 export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
   handleLiquidatePositionHelper(event)
-}
-
-export function handleEnableCollateral(event: EnableCollateralEvent): void {
-  handleEnableCollateralHelper(event)
 }
 
 export function handleConfigBorrowTokenHelper(
