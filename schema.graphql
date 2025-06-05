@@ -511,7 +511,7 @@ type LiquidatePosition @entity {
   repayToken: Token!
   liquidatePrice: BigInt!
   positionValue: BigInt!
-  repayValue: BigInt!
+  repayValue: BigDecimal!
   liquidateFeeValue: BigInt!
   protocolFee: BigInt!
   txHash: String!

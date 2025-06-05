@@ -1,4 +1,4 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { log } from '@graphprotocol/graph-ts'
 
 import {
   LiquidatePosition as LiquidatePositionEvent,
@@ -94,6 +94,8 @@ export function handleLiquidatePositionHelper(
 
   const liquidityPosition = LiquidityPosition.load(tokenId)
   const position = Position.load(tokenId)
+  // log.info('==========================================================', [])
+  // log.info('handleLiquidatePositionHelper: tokenId {}, positionId {}', [tokenId, positionId])
 
   if (position === null) {
     log.error('handleLiquidatePositionHelper: position not found for tokenId {}', [tokenId])
@@ -187,7 +189,7 @@ export function handleLiquidatePositionHelper(
   liqPosition.repayToken = repayToken.id
   liqPosition.liquidatePrice = event.params.liquidatePrice
   liqPosition.positionValue = event.params.positionValue
-  liqPosition.repayValue = BigInt.fromString(repayValue.toString())
+  liqPosition.repayValue = repayValue
   liqPosition.liquidateFeeValue = event.params.liquidateFeeValue
   liqPosition.protocolFee = event.params.protocolFee
   liqPosition.txHash = event.transaction.hash.toHexString()
