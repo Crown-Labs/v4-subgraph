@@ -94,8 +94,6 @@ export function handleLiquidatePositionHelper(
 
   const liquidityPosition = LiquidityPosition.load(tokenId)
   const position = Position.load(tokenId)
-  // log.info('==========================================================', [])
-  // log.info('handleLiquidatePositionHelper: tokenId {}, positionId {}', [tokenId, positionId])
 
   if (position === null) {
     log.error('handleLiquidatePositionHelper: position not found for tokenId {}', [tokenId])
