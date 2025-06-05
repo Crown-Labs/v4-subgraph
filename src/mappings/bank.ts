@@ -4,7 +4,15 @@ import {
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
 } from '../types/KittycornBank/KittycornBank'
-import { BorrowAsset, LiquidatePosition, LiquidatePositionDaily, LiquidityPosition, Pool, Token } from '../types/schema'
+import {
+  BorrowAsset,
+  LiquidatePosition,
+  LiquidatePositionDaily,
+  LiquidityPosition,
+  Pool,
+  Position,
+  Token,
+} from '../types/schema'
 import { exponentToBigDecimal } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
@@ -85,6 +93,12 @@ export function handleLiquidatePositionHelper(
   const positionId = event.params.positionId.toString()
 
   const liquidityPosition = LiquidityPosition.load(tokenId)
+  const position = Position.load(tokenId)
+
+  if (position === null) {
+    log.error('handleLiquidatePositionHelper: position not found for tokenId {}', [tokenId])
+    return
+  }
 
   if (liquidityPosition === null) {
     log.error('handleLiquidatePositionHelper: liquidityPosition not found for tokenId {}', [tokenId])
@@ -188,6 +202,7 @@ export function handleLiquidatePositionHelper(
   liqPosition.sqrtPrice = pool.sqrtPrice
   liqPosition.tick = ZERO_BI
   liqPosition.poolId = pool.id
+  liqPosition.position = position.id
 
   const timestamp = event.block.timestamp.toI32()
 

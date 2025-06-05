@@ -430,6 +430,7 @@ type Position @entity {
   unsubscriptions: [Unsubscribe!]! @derivedFrom(field: "position")
   # transfer events
   transfers: [Transfer!]! @derivedFrom(field: "position")
+  liquidatePosition: LiquidatePosition @derivedFrom(field: "position")
 }
 
 type Subscribe @entity {
@@ -525,6 +526,7 @@ type LiquidatePosition @entity {
   sqrtPrice: BigInt!
   tick: BigInt!
   poolId: String!
+  position: Position! 
 }
 
 type LiquidatePositionDaily @entity {
