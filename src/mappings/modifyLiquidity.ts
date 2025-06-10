@@ -1,10 +1,19 @@
 import { Address, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { ModifyLiquidity as ModifyLiquidityEvent } from '../types/PoolManager/PoolManager'
-import { Bundle, LiquidityPosition, ModifyLiquidity, Pool, PoolManager, Tick, Token } from '../types/schema'
+import {
+  Bundle,
+  LiquidityPosition,
+  ModifyLiquidity,
+  Pool,
+  PoolAllowCollateral,
+  PoolManager,
+  Tick,
+  Token,
+} from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI } from '../utils/constants'
-import { convertTokenToDecimal, hexToBigInt, loadTransaction } from '../utils/index'
+import { convertTokenToDecimal, hexToBigInt, loadKittycornPositionManager, loadTransaction } from '../utils/index'
 import {
   updatePoolDayData,
   updatePoolHourData,
@@ -31,6 +40,10 @@ export function handleModifyLiquidityHelper(
   const poolId = event.params.id.toHexString()
   const pool = Pool.load(poolId)
   const poolManager = PoolManager.load(poolManagerAddress)
+
+  const poolCollateral = PoolAllowCollateral.load(poolId)
+  const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
+  const isKittycornPMAddress = event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))
 
   if (pool === null) {
     log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId])
@@ -71,6 +84,16 @@ export function handleModifyLiquidityHelper(
 
     // reset tvl aggregates until new amounts calculated
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)
+    if (isKittycornPMAddress) {
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.minus(
+        pool.totalValueLockedETH,
+      )
+    }
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.minus(
+        pool.totalValueLockedETH,
+      )
+    }
 
     // update globals
     poolManager.txCount = poolManager.txCount.plus(ONE_BI)
@@ -108,6 +131,28 @@ export function handleModifyLiquidityHelper(
     // reset aggregates with new amounts
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
+
+    if (isKittycornPMAddress || poolCollateral !== null) {
+      kittycornPositionManager.txCount = kittycornPositionManager.txCount.plus(ONE_BI)
+    }
+
+    if (isKittycornPMAddress) {
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
+        bundle.ethPriceUSD,
+      )
+    }
+
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalCollateralUSD = kittycornPositionManager.totalCollateralUSD.times(
+        bundle.ethPriceUSD,
+      )
+    }
 
     const transaction = loadTransaction(event)
     const modifyLiquidity = new ModifyLiquidity(transaction.id.toString() + '-' + event.logIndex.toString())
