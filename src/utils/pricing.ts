@@ -1,4 +1,4 @@
-import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { exponentToBigDecimal, safeDiv } from '../utils/index'
 import { Bundle, Pool, Token } from './../types/schema'
@@ -17,7 +17,10 @@ export function sqrtPriceX96ToTokenPrices(
 
   const num = sqrtPriceX96.times(sqrtPriceX96).toBigDecimal()
   const denom = BigDecimal.fromString(Q192.toString())
-  const price1 = num.div(denom).times(exponentToBigDecimal(token0Decimals)).div(exponentToBigDecimal(token1Decimals))
+  const price1 = num
+    .div(denom)
+    .times(exponentToBigDecimal(token0Decimals))
+    .div(exponentToBigDecimal(token1Decimals))
 
   const price0 = safeDiv(BigDecimal.fromString('1'), price1)
   return [price0, price1]
@@ -26,6 +29,8 @@ export function sqrtPriceX96ToTokenPrices(
 export function getNativePriceInUSD(stablecoinWrappedNativePoolId: string, stablecoinIsToken0: boolean): BigDecimal {
   const stablecoinWrappedNativePool = Pool.load(stablecoinWrappedNativePoolId)
   if (stablecoinWrappedNativePool !== null) {
+    log.info('getNativePriceInUSD===================================', [])
+    log.info('stablecoinWrappedNativePool.token1Price: {}', [stablecoinWrappedNativePool.token1Price.toString()])
     return stablecoinIsToken0 ? stablecoinWrappedNativePool.token0Price : stablecoinWrappedNativePool.token1Price
   } else {
     return ZERO_BD
@@ -68,6 +73,10 @@ export function findNativePerToken(
             const token1 = Token.load(pool.token1)
             // get the derived ETH in pool
             if (token1) {
+              // log.info('token1 pool.id: {}', [pool.id.toLowerCase()])
+              // if (pool.id == '0x0439fca80a47a05bf8b0a014ac17e9dbff040f40b395128d3abc47911750ce4b') {
+              //   log.info('token1.derivedETH: {}', [token1.derivedETH.toString()])
+              // }
               const ethLocked = pool.totalValueLockedToken1.times(token1.derivedETH)
               if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(minimumNativeLocked)) {
                 largestLiquidityETH = ethLocked
@@ -80,6 +89,10 @@ export function findNativePerToken(
             const token0 = Token.load(pool.token0)
             // get the derived ETH in pool
             if (token0) {
+              // log.info('token0 pool.id: {}', [pool.id.toLowerCase()])
+              // if (pool.id == '0x0439fca80a47a05bf8b0a014ac17e9dbff040f40b395128d3abc47911750ce4b') {
+              //   log.info('token1.derivedETH: {}', [token0.derivedETH.toString()])
+              // }
               const ethLocked = pool.totalValueLockedToken0.times(token0.derivedETH)
               if (ethLocked.gt(largestLiquidityETH) && ethLocked.gt(minimumNativeLocked)) {
                 largestLiquidityETH = ethLocked
