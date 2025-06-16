@@ -1,4 +1,4 @@
-import { BigInt, log } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt, log } from '@graphprotocol/graph-ts'
 
 import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
 import { PoolManager } from '../types/schema'
@@ -19,6 +19,7 @@ export function handleInitializeHelper(
   event: InitializeEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
 ): void {
+  log.info('handleInitializeHelper: event params:', [])
   const poolManagerAddress = subgraphConfig.poolManagerAddress
   const whitelistTokens = subgraphConfig.whitelistTokens
   const tokenOverrides = subgraphConfig.tokenOverrides
@@ -53,7 +54,7 @@ export function handleInitializeHelper(
 
     // create new bundle for tracking eth price
     const bundle = new Bundle('1')
-    bundle.ethPriceUSD = ZERO_BD
+    bundle.ethPriceUSD = BigDecimal.fromString('2524.722051898805014784513439587073')
     bundle.save()
   }
 
@@ -173,11 +174,19 @@ export function handleInitializeHelper(
   // update ETH price now that prices could have changed
   const bundle = Bundle.load('1')!
   bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
-  bundle.save()
+  // bundle.save()
   updatePoolDayData(poolId, event)
   updatePoolHourData(poolId, event)
+  log.info('1==========================', [])
   token1.derivedETH = findNativePerToken(token1, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
   token0.derivedETH = findNativePerToken(token0, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+  if (
+    token1.id == '0xfff9976782d46cc05630d1f6ebab18b2324d6b14' ||
+    token0.id == '0xfff9976782d46cc05630d1f6ebab18b2324d6b14'
+  ) {
+    log.info('token1.derivedETH:: {}', [token1.derivedETH.toString()])
+    log.info('token0.derivedETH:: {}', [token0.derivedETH.toString()])
+  }
 
   token0.save()
   token1.save()
