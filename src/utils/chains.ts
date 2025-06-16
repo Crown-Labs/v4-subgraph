@@ -69,8 +69,8 @@ export function getSubgraphConfig(): SubgraphConfig {
   if (selectedNetwork == SEPOLIA_NETWORK_NAME) {
     return {
       poolManagerAddress: '0xe03a1074c86cfedd5c142c4f04f1a1536e203543',
-      stablecoinWrappedNativePoolId: '0x0439fca80a47a05bf8b0a014ac17e9dbff040f40b395128d3abc47911750ce4b',
-      stablecoinIsToken0: false,
+      stablecoinWrappedNativePoolId: '0x0348712fe03e7976482c0af1264a380df79c5ea3f49ab0b045f8b94e543e804c',
+      stablecoinIsToken0: true,
       wrappedNativeAddress: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
       minimumNativeLocked: BigDecimal.fromString('1'),
       stablecoinAddresses: [
