@@ -1,6 +1,7 @@
 import { BigDecimal, log } from '@graphprotocol/graph-ts'
 
 import {
+  EnableCollateral,
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
   SetConfigCollateral as SetConfigCollateralCallEvent,
@@ -33,6 +34,26 @@ export function handleSetConfigCollateral(event: SetConfigCollateralCallEvent): 
   handleSetConfigCollateralHelper(event)
 }
 
+export function handleEnableCollateral(event: EnableCollateral): void {
+  handleCollateralEnableDisable(event, true)
+}
+
+// actual type is DisableCollateral but graphnode cannot combine types
+export function handleDisableCollateral(event: EnableCollateral): void {
+  handleCollateralEnableDisable(event, false)
+}
+
+function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: boolean): void {
+  const tokenId = event.params.tokenId.toString()
+  const position = Position.load(tokenId)
+  if (position === null) {
+    log.error('handleCollateralEnableDisable: position not found for tokenId {}', [tokenId])
+    return
+  }
+  position.isCollateral = isCollateral
+  position.save()
+}
+
 function handleSetConfigCollateralHelper(
   event: SetConfigCollateralCallEvent,
   subgraphConfig: SubgraphConfig = getSubgraphConfig(),
@@ -42,18 +63,19 @@ function handleSetConfigCollateralHelper(
   let poolCollateral = PoolAllowCollateral.load(poolId)
   const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
   const pool = Pool.load(poolId)
-  if (poolCollateral !== null) {
+  if (poolCollateral === null) {
     kittycornPositionManager.poolCount = kittycornPositionManager.poolCount.plus(ONE_BI)
+    kittycornPositionManager.save()
     poolCollateral = new PoolAllowCollateral(poolId)
   }
   if (pool !== null) {
     poolCollateral.pool = pool.id
-    poolCollateral.allowCollateral = event.params.allowCollateral
-    poolCollateral.maxLTV = event.params.maxLTV
-    poolCollateral.liquidationThreshold = event.params.liquidationThreshold
-    poolCollateral.liquidationFee = event.params.liquidationFee
-    poolCollateral.save()
   }
+  poolCollateral.allowCollateral = event.params.allowCollateral
+  poolCollateral.maxLTV = event.params.maxLTV
+  poolCollateral.liquidationThreshold = event.params.liquidationThreshold
+  poolCollateral.liquidationFee = event.params.liquidationFee
+  poolCollateral.save()
 }
 
 export function handleConfigBorrowTokenHelper(
@@ -240,6 +262,9 @@ export function handleLiquidatePositionHelper(
   liqPosition.poolId = pool.id
   liqPosition.position = position.id
 
+  position.isLiquidated = true
+  position.liquidatedOwner = event.params.owner.toHexString()
+
   kittycornDayData.liquidateFeesUSD = kittycornDayData.liquidateFeesUSD.plus(
     BigDecimal.fromString(event.params.liquidateFeeValue.toString()),
   )
@@ -264,6 +289,7 @@ export function handleLiquidatePositionHelper(
   )
   positionDaily.protocolFeeAccumulate = positionDaily.protocolFeeAccumulate.plus(liqPosition.protocolFee)
 
+  position.save()
   kittycornDayData.save()
   liqPosition.save()
   positionDaily.save()

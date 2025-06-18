@@ -42,6 +42,8 @@ export class SubgraphConfig {
   // used to determine whether volume is tracked or not.
   whitelistTokens: string[]
 
+  tokenizes: Array<string[]>
+
   // token overrides are used to override RPC calls for the symbol, name, and
   // decimals for tokens. for new chains this is typically empty.
   tokenOverrides: StaticTokenDefinition[]
@@ -69,10 +71,10 @@ export function getSubgraphConfig(): SubgraphConfig {
   if (selectedNetwork == SEPOLIA_NETWORK_NAME) {
     return {
       poolManagerAddress: '0xe03a1074c86cfedd5c142c4f04f1a1536e203543',
-      stablecoinWrappedNativePoolId: '0x0439fca80a47a05bf8b0a014ac17e9dbff040f40b395128d3abc47911750ce4b',
-      stablecoinIsToken0: false,
+      stablecoinWrappedNativePoolId: '0x0348712fe03e7976482c0af1264a380df79c5ea3f49ab0b045f8b94e543e804c',
+      stablecoinIsToken0: true,
       wrappedNativeAddress: '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
-      minimumNativeLocked: BigDecimal.fromString('1'),
+      minimumNativeLocked: BigDecimal.fromString('0'),
       stablecoinAddresses: [
         '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
         '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT
@@ -82,6 +84,14 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x1c7d4b196cb0c7b01d743fbc6116a902379c7238', // USDC
         '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0', // USDT,
         '0xfff9976782d46cc05630d1f6ebab18b2324d6b14', // WETH
+      ],
+      tokenizes: [
+        ['0x1289c2dc45a0ea5e67f6ffa2b601d23d66547d3e', '0x88541670e55cc00beefd87eb59edd1b7c511ac9a'], // tAAVE
+        ['0x67332e6e2fbb793b822f3c2d7ff8be9f07f1ead9', '0x29f2d40b0605204364af54ec677bd022da425d03'], // tWBTC
+        ['0x54f4d76dab01190a32fb0a5da441be85e3cef937', '0xc558dbdd856501fcd9aaf1e62eae57a9f0629a3c'], // tWETH
+        ['0x7dde6bd33b4e6eb1d6f0519f4cf65deeb162dd86', '0xf8fb3713d459d7c1018bd0a49d19b4c44290ebe5'], // tLINK
+        ['0x1e271db8d8b446a0dee8e9d774f4213e9bc1c6ba', '0x94a9d9ac8a22534e3faca9f4e7f2e2cf85d5e4c8'], // tUSDC
+        ['0x137a906e06ec20808c8f156f9024196427429220', '0xaa8e23fb1079ea71e0a56f48a2aa51851d8433d0'], // tUSDT
       ],
       tokenOverrides: [],
       poolsToSkip: [],
@@ -111,6 +121,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d', // USDC
         '0x0000000000000000000000000000000000000000', // Native BNB
       ],
+      tokenizes: [],
       tokenOverrides: [],
       poolsToSkip: [],
       poolMappings: [],
@@ -160,6 +171,7 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0xfe2e637202056d30016725477c5da089ab0a043a', // sETH2
         '0x0000000000000000000000000000000000000000', // Native ETH
       ],
+      tokenizes: [],
       tokenOverrides: [
         {
           address: Address.fromString('0xe0b7927c4af23765cb51314a0e0521a9645f0e2a'),

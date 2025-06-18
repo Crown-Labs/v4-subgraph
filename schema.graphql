@@ -431,6 +431,10 @@ type Position @entity {
   # transfer events
   transfers: [Transfer!]! @derivedFrom(field: "position")
   liquidatePosition: LiquidatePosition @derivedFrom(field: "position")
+
+  isLiquidated: Boolean!
+  liquidatedOwner: String
+  isCollateral: Boolean!
 }
 
 type Subscribe @entity {
@@ -560,7 +564,7 @@ type BankPosition @entity {
 type PoolAllowCollateral @entity {
   # poolId
   id: ID!
-  pool: Pool!
+  pool: Pool
   allowCollateral: Boolean!
   maxLTV: BigInt!
   liquidationThreshold: BigInt!
