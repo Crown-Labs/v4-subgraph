@@ -1,8 +1,10 @@
-import { log } from '@graphprotocol/graph-ts'
+import { BigDecimal, log } from '@graphprotocol/graph-ts'
 
 import {
+  EnableCollateral,
   LiquidatePosition as LiquidatePositionEvent,
   SetConfigBorrowToken as SetConfigBorrowTokenEvent,
+  SetConfigCollateral as SetConfigCollateralCallEvent,
 } from '../types/KittycornBank/KittycornBank'
 import {
   BorrowAsset,
@@ -10,12 +12,14 @@ import {
   LiquidatePositionDaily,
   LiquidityPosition,
   Pool,
+  PoolAllowCollateral,
   Position,
   Token,
 } from '../types/schema'
-import { exponentToBigDecimal } from '../utils'
+import { exponentToBigDecimal, loadKittycornPositionManager } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import { updateKittycornDayData } from '../utils/intervalUpdates'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 
 export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void {
@@ -24,6 +28,54 @@ export function handleConfigBorrowToken(event: SetConfigBorrowTokenEvent): void 
 
 export function handleLiquidatePosition(event: LiquidatePositionEvent): void {
   handleLiquidatePositionHelper(event)
+}
+
+export function handleSetConfigCollateral(event: SetConfigCollateralCallEvent): void {
+  handleSetConfigCollateralHelper(event)
+}
+
+export function handleEnableCollateral(event: EnableCollateral): void {
+  handleCollateralEnableDisable(event, true)
+}
+
+// actual type is DisableCollateral but graphnode cannot combine types
+export function handleDisableCollateral(event: EnableCollateral): void {
+  handleCollateralEnableDisable(event, false)
+}
+
+function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: boolean): void {
+  const tokenId = event.params.tokenId.toString()
+  const position = Position.load(tokenId)
+  if (position === null) {
+    log.error('handleCollateralEnableDisable: position not found for tokenId {}', [tokenId])
+    return
+  }
+  position.isCollateral = isCollateral
+  position.save()
+}
+
+function handleSetConfigCollateralHelper(
+  event: SetConfigCollateralCallEvent,
+  subgraphConfig: SubgraphConfig = getSubgraphConfig(),
+): void {
+  const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
+  const poolId = event.params.poolId.toHexString()
+  let poolCollateral = PoolAllowCollateral.load(poolId)
+  const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
+  const pool = Pool.load(poolId)
+  if (poolCollateral === null) {
+    kittycornPositionManager.poolCount = kittycornPositionManager.poolCount.plus(ONE_BI)
+    kittycornPositionManager.save()
+    poolCollateral = new PoolAllowCollateral(poolId)
+  }
+  if (pool !== null) {
+    poolCollateral.pool = pool.id
+  }
+  poolCollateral.allowCollateral = event.params.allowCollateral
+  poolCollateral.maxLTV = event.params.maxLTV
+  poolCollateral.liquidationThreshold = event.params.liquidationThreshold
+  poolCollateral.liquidationFee = event.params.liquidationFee
+  poolCollateral.save()
 }
 
 export function handleConfigBorrowTokenHelper(
@@ -36,6 +88,7 @@ export function handleConfigBorrowTokenHelper(
 
   const tokenOverrides = subgraphConfig.tokenOverrides
   const nativeTokenDetails = subgraphConfig.nativeTokenDetails
+  const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
 
   let token = Token.load(assetId)
 
@@ -67,6 +120,7 @@ export function handleConfigBorrowTokenHelper(
     token.whitelistPools = []
   }
 
+  const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
   let borrowAsset = BorrowAsset.load(assetId)
   if (borrowAsset === null) {
     borrowAsset = new BorrowAsset(assetId)
@@ -78,7 +132,9 @@ export function handleConfigBorrowTokenHelper(
   }
   borrowAsset.allowBorrow = allowBorrow
   borrowAsset.borrowFee = borrowFee
+  kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(BigDecimal.fromString(borrowFee.toString()))
 
+  kittycornDayData.save()
   token.save()
   borrowAsset.save()
 }
@@ -109,6 +165,9 @@ export function handleLiquidatePositionHelper(
     log.error('handleLiquidatePositionHelper: pool not found for poolId {}', [liquidityPosition.pool])
     return
   }
+
+  const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
+  const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
 
   let repayToken = Token.load(event.params.repayToken.toHexString())
   if (repayToken === null) {
@@ -203,6 +262,13 @@ export function handleLiquidatePositionHelper(
   liqPosition.poolId = pool.id
   liqPosition.position = position.id
 
+  position.isLiquidated = true
+  position.liquidatedOwner = event.params.owner.toHexString()
+
+  kittycornDayData.liquidateFeesUSD = kittycornDayData.liquidateFeesUSD.plus(
+    BigDecimal.fromString(event.params.liquidateFeeValue.toString()),
+  )
+
   const timestamp = event.block.timestamp.toI32()
 
   const dayID = timestamp / 86400 // rounded
@@ -223,6 +289,8 @@ export function handleLiquidatePositionHelper(
   )
   positionDaily.protocolFeeAccumulate = positionDaily.protocolFeeAccumulate.plus(liqPosition.protocolFee)
 
+  position.save()
+  kittycornDayData.save()
   liqPosition.save()
   positionDaily.save()
   repayToken.save()
