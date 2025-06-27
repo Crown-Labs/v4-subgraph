@@ -1,6 +1,7 @@
 import { BigDecimal, log } from '@graphprotocol/graph-ts'
 
 import {
+  Borrow,
   EnableCollateral,
   LiquidatePosition as LiquidatePositionEvent,
   Repay,
@@ -21,6 +22,7 @@ import {
 import { exponentToBigDecimal, loadKittycornPositionManager } from '../utils'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
+import { getToken } from '../utils/helper'
 import { updateKittycornDayData } from '../utils/intervalUpdates'
 import { fetchTokenDecimals, fetchTokenName, fetchTokenSymbol, fetchTokenTotalSupply } from '../utils/token'
 
@@ -45,10 +47,46 @@ export function handleDisableCollateral(event: EnableCollateral): void {
   handleCollateralEnableDisable(event, false)
 }
 
-export function handleRepay(event: Repay, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
+export function handleRepay(event: Repay): void {
+  handleRepayHelper(event)
+}
+
+export function handleBorrow(event: Borrow): void {
+  const assetId = event.params.ulToken.toHexString()
+  const borrowAmount = event.params.borrowAmount
+  const token = getToken(assetId)
+  if (token === null) {
+    log.error('handleBorrow: token not found for assetId {}', [assetId])
+    return
+  }
+  let borrowAsset = BorrowAsset.load(assetId)
+
+  if (borrowAsset === null) {
+    borrowAsset = new BorrowAsset(assetId)
+    borrowAsset.token = token.id
+    borrowAsset.totalSupply = ZERO_BI
+    borrowAsset.supplyAPY = ZERO_BI
+    borrowAsset.borrowAPY = ZERO_BI
+    borrowAsset.borrowFee = ZERO_BI
+    borrowAsset.allowBorrow = false
+    borrowAsset.totalBorrowAmount = ZERO_BI
+  }
+  borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.plus(borrowAmount)
+
+  borrowAsset.save()
+}
+
+export function handleRepayHelper(event: Repay, subgraphConfig: SubgraphConfig = getSubgraphConfig()): void {
   const repayFee = BigDecimal.fromString(event.params.repayFee.toString())
+  const repayAmount = event.params.repayAmount
   const bundle = Bundle.load('1')
-  const token = Token.load(event.params.ulToken.toString())
+  const assetId = event.params.ulToken.toHexString()
+  const token = getToken(assetId)
+  if (token === null) {
+    log.error('handleRepayHelper: token not found for assetId {}', [assetId])
+    return
+  }
+
   if (token !== null && bundle !== null) {
     const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
     const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
@@ -57,6 +95,21 @@ export function handleRepay(event: Repay, subgraphConfig: SubgraphConfig = getSu
     kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(amountUSD)
     kittycornDayData.save()
   }
+  let borrowAsset = BorrowAsset.load(assetId)
+
+  if (borrowAsset === null) {
+    borrowAsset = new BorrowAsset(assetId)
+    borrowAsset.token = token.id
+    borrowAsset.totalSupply = ZERO_BI
+    borrowAsset.supplyAPY = ZERO_BI
+    borrowAsset.borrowAPY = ZERO_BI
+    borrowAsset.borrowFee = ZERO_BI
+    borrowAsset.allowBorrow = false
+    borrowAsset.totalBorrowAmount = ZERO_BI
+  }
+  borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.minus(repayAmount)
+
+  borrowAsset.save()
 }
 
 function handleCollateralEnableDisable(event: EnableCollateral, isCollateral: boolean): void {
@@ -146,6 +199,7 @@ export function handleConfigBorrowTokenHelper(
     borrowAsset.supplyAPY = ZERO_BI
     borrowAsset.borrowAPY = ZERO_BI
     borrowAsset.borrowFee = ZERO_BI
+    borrowAsset.totalBorrowAmount = ZERO_BI
   }
   borrowAsset.allowBorrow = allowBorrow
   borrowAsset.borrowFee = borrowFee

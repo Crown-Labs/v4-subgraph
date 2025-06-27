@@ -507,6 +507,7 @@ type BorrowAsset @entity {
   borrowAPY: BigInt!
   allowBorrow: Boolean!
   borrowFee: BigInt!
+  totalBorrowAmount: BigInt!
 }
 
 type LiquidatePosition @entity {
