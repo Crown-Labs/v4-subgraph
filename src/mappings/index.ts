@@ -8,6 +8,7 @@ import {
   handleSetConfigCollateral,
 } from './bank'
 import { handleModifyLiquidity } from './modifyLiquidity'
+import { handleClaimed } from './pointDistributor'
 import { handleInitialize } from './poolManager'
 import { handleSubscription } from './subscribe'
 import { handleSwap } from './swap'
@@ -16,6 +17,7 @@ import { handleUnsubscription } from './unsubscribe'
 
 export {
   handleBorrow,
+  handleClaimed,
   handleConfigBorrowToken,
   handleDisableCollateral,
   handleEnableCollateral,
