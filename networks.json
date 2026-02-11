@@ -11,6 +11,10 @@
     "KittycornBank": {
       "address": "0x9e09Ea7d3AaDEDA139c69F5b06aBA5546705a56E",
       "startBlock": 8509203
+    },
+    "KittycornPointDistributor": {
+      "address": "0x121cf79a420178BDc8Ea4570afB2923E6745d25a",
+      "startBlock": 10194254
     }
   },
   "sepolia-dev": {

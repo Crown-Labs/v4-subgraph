@@ -1,4 +1,4 @@
-type PoolManager @entity {
+type PoolManager @entity(immutable: false) {
   # poolManager address
   id: ID!
   # amount of pools created
@@ -28,13 +28,13 @@ type PoolManager @entity {
 }
 
 # stores for USD calculations
-type Bundle @entity {
+type Bundle @entity(immutable: false) {
   id: ID!
   # price of ETH in usd
   ethPriceUSD: BigDecimal!
 }
 
-type Token @entity {
+type Token @entity(immutable: false) {
   # token address
   id: ID!
   # token symbol
@@ -79,7 +79,7 @@ type Token @entity {
   isKittycornLiquidity: Boolean!
 }
 
-type Pool @entity {
+type Pool @entity(immutable: false) {
   # pool address
   id: ID!
   # creation
@@ -151,7 +151,7 @@ type Pool @entity {
   isKittycornLiquidity: Boolean!
 }
 
-type Tick @entity {
+type Tick @entity(immutable: false) {
   # format: <pool address>#<tick index>
   id: ID!
   # pool address
@@ -174,7 +174,7 @@ type Tick @entity {
   createdAtBlockNumber: BigInt!
 }
 
-type Transaction @entity {
+type Transaction @entity(immutable: true) {
   # txn hash
   id: ID!
   # block txn was included in
@@ -192,7 +192,7 @@ type Transaction @entity {
   unsubscriptions: [Unsubscribe]! @derivedFrom(field: "transaction")
 }
 
-type Swap @entity {
+type Swap @entity(immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
   # pointer to transaction
@@ -225,7 +225,7 @@ type Swap @entity {
   logIndex: BigInt
 }
 
-type ModifyLiquidity @entity {
+type ModifyLiquidity @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # which txn the ModifyLiquidity was included in
@@ -261,7 +261,7 @@ type ModifyLiquidity @entity {
 }
 
 # Data accumulated and condensed into day stats for all of Uniswap
-type UniswapDayData @entity {
+type UniswapDayData @entity(immutable: false) {
   # timestamp rounded to current day by dividing by 86400
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -281,7 +281,7 @@ type UniswapDayData @entity {
 }
 
 # Data accumulated and condensed into day stats for each pool
-type PoolDayData @entity {
+type PoolDayData @entity(immutable: false) {
   # timestamp rounded to current day by dividing by 86400
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -321,7 +321,7 @@ type PoolDayData @entity {
 }
 
 # hourly stats tracker for pool
-type PoolHourData @entity {
+type PoolHourData @entity(immutable: false) {
   # format: <pool address>-<timestamp>
   id: ID!
   # unix timestamp for start of hour
@@ -360,7 +360,7 @@ type PoolHourData @entity {
   close: BigDecimal!
 }
 
-type TokenDayData @entity {
+type TokenDayData @entity(immutable: false) {
   # token address concatendated with date
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -391,7 +391,7 @@ type TokenDayData @entity {
   close: BigDecimal!
 }
 
-type TokenHourData @entity {
+type TokenHourData @entity(immutable: false) {
   # token address concatendated with date
   id: ID!
   # unix timestamp for start of hour
@@ -422,7 +422,7 @@ type TokenHourData @entity {
   close: BigDecimal!
 }
 
-type Position @entity {
+type Position @entity(immutable: false) {
   # tokenId
   id: ID!
   # tokenId
@@ -448,7 +448,7 @@ type Position @entity {
   isMigrated: Boolean!
 }
 
-type Subscribe @entity {
+type Subscribe @entity(immutable: true) {
   # transaction hash + '-' + log index
   id: ID!
   # token id of position subscribed to
@@ -467,7 +467,7 @@ type Subscribe @entity {
   position: Position!
 }
 
-type Unsubscribe @entity {
+type Unsubscribe @entity(immutable: true) {
   # transaction hash + '-' + log index
   id: ID!
   # token id of position unsubscribed from
@@ -486,7 +486,7 @@ type Unsubscribe @entity {
   position: Position!
 }
 
-type Transfer @entity {
+type Transfer @entity(immutable: true) {
   # transaction hash + '-' + log index
   id: ID!
   # token id of position
@@ -507,7 +507,7 @@ type Transfer @entity {
   position: Position!
 }
 
-type BorrowAsset @entity {
+type BorrowAsset @entity(immutable: false) {
   id: ID!
   token: Token!
   totalSupply: BigInt!
@@ -518,7 +518,7 @@ type BorrowAsset @entity {
   totalBorrowAmount: BigInt!
 }
 
-type LiquidatePosition @entity {
+type LiquidatePosition @entity(immutable: true) {
   id: ID!
   tokenId: BigInt!
   positionId: BigInt!
@@ -545,7 +545,7 @@ type LiquidatePosition @entity {
   position: Position!
 }
 
-type LiquidatePositionDaily @entity {
+type LiquidatePositionDaily @entity(immutable: false) {
   id: ID!
   totalCount: BigInt!
   liquidateValueAccumulate: BigInt!
@@ -553,7 +553,7 @@ type LiquidatePositionDaily @entity {
   protocolFeeAccumulate: BigInt!
 }
 
-type LiquidityPosition @entity {
+type LiquidityPosition @entity(immutable: false) {
   id: ID!
   tokenId: BigInt!
   position: Position
@@ -565,7 +565,7 @@ type LiquidityPosition @entity {
   borrowAmount: BigInt!
 }
 
-type BankPosition @entity {
+type BankPosition @entity(immutable: false) {
   id: ID!
   tokenId: BigInt!
   positionId: BigInt!
@@ -577,7 +577,7 @@ type BankPosition @entity {
   positionInfo: BigInt!
 }
 
-type PoolAllowCollateral @entity {
+type PoolAllowCollateral @entity(immutable: false) {
   # poolId
   id: ID!
   pool: Pool
@@ -587,7 +587,7 @@ type PoolAllowCollateral @entity {
   liquidationFee: BigInt!
 }
 
-type KittycornPositionManager @entity {
+type KittycornPositionManager @entity(immutable: false) {
   # positionManager address
   id: ID!
   # amount of pools created
@@ -605,7 +605,7 @@ type KittycornPositionManager @entity {
   totalCollateralUSD: BigDecimal!
 }
 
-type KittycornDayData @entity {
+type KittycornDayData @entity(immutable: false) {
   # timestamp rounded to current day by dividing by 86400
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -627,7 +627,7 @@ type KittycornDayData @entity {
 }
 
 # Daily swap data aggregated per user for tokenized pools (pools with PoolAllowCollateral)
-type UserSwapDayData @entity {
+type UserSwapDayData @entity(immutable: false) {
   # format: <user address>-<dayID>
   id: ID!
   # timestamp rounded to current day by dividing by 86400
@@ -640,4 +640,20 @@ type UserSwapDayData @entity {
   feesUSD: BigDecimal!
   # accumulated number of swaps for the day
   txCount: BigInt!
+}
+
+# Individual point claim record
+type PointClaim @entity(immutable: true) {
+  # Format: {txHash}-{logIndex}
+  id: ID!
+  # Recipient address
+  to: Bytes!
+  # Amount of points claimed
+  amount: BigInt!
+  # Nonce used for the claim
+  nonce: BigInt!
+  # Block timestamp
+  timestamp: BigInt!
+  # Reference to transaction
+  transaction: Transaction!
 }

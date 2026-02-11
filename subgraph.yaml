@@ -9,11 +9,11 @@ features:
 dataSources:
   - kind: ethereum/contract
     name: PoolManager
-    network: arbitrum-one
+    network: sepolia
     source:
       abi: PoolManager
-      address: "0x360E68faCcca8cA495c1B759Fd9EEe466db9FB32"
-      startBlock: 297842872
+      address: "0xE03A1074c86CFeDd5C142C4F04F1a1536e203543"
+      startBlock: 7258946
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -43,11 +43,11 @@ dataSources:
           handler: handleSwap
   - kind: ethereum/contract
     name: PositionManager
-    network: arbitrum-one
+    network: sepolia
     source:
       abi: PositionManager
-      address: "0x0989f4a52CC70099392b38e3D405e4F515D12630"
-      startBlock: 365457617
+      address: "0x9217f722bcd5812FA14538BFDc5f2c4D0546594e"
+      startBlock: 8509203
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -67,11 +67,11 @@ dataSources:
           handler: handleTransfer
   - kind: ethereum/contract
     name: KittycornBank
-    network: arbitrum-one
+    network: sepolia
     source:
       abi: KittycornBank
-      address: "0xf0E778F51865B9c3bCbfE2B59aD19A12d6d1a0Fc"
-      startBlock: 365457583
+      address: "0x9e09Ea7d3AaDEDA139c69F5b06aBA5546705a56E"
+      startBlock: 8509203
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -106,3 +106,23 @@ dataSources:
           handler: handleRepay
         - event: Borrow(indexed uint256,indexed address,uint256)
           handler: handleBorrow
+  - kind: ethereum/contract
+    name: KittycornPointDistributor
+    network: sepolia
+    source:
+      abi: KittycornPointDistributor
+      address: "0x121cf79a420178BDc8Ea4570afB2923E6745d25a"
+      startBlock: 10194254
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - PointClaim
+      abis:
+        - name: KittycornPointDistributor
+          file: ./abis/KittycornPointDistributor.json
+      eventHandlers:
+        - event: Claimed(indexed address,uint256,uint256)
+          handler: handleClaimed
