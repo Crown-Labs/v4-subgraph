@@ -27,3 +27,24 @@ dataSources:
       eventHandlers:
         - event: Claimed(indexed address,uint256,uint256)
           handler: handleClaimed
+  - kind: ethereum/contract
+    name: PointToken
+    network: sepolia
+    source:
+      abi: PointToken
+      address: "0xA3E25fa12881c78FB70Bb8bF8DAb39EA1ecE637b"
+      startBlock: 10269300
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.7
+      language: wasm/assemblyscript
+      file: ./src/mappings/index.ts
+      entities:
+        - PointBurn
+        - Transaction
+      abis:
+        - name: PointToken
+          file: ./abis/PointToken.json
+      eventHandlers:
+        - event: Burn(indexed address,uint256)
+          handler: handleBurn
