@@ -10,6 +10,7 @@ type Transaction @entity(immutable: true) {
   gasPrice: BigInt!
   # derived values
   pointClaims: [PointClaim]! @derivedFrom(field: "transaction")
+  pointBurns: [PointBurn]! @derivedFrom(field: "transaction")
 }
 
 # Individual point claim record
@@ -22,6 +23,20 @@ type PointClaim @entity(immutable: true) {
   amount: BigInt!
   # Nonce used for the claim
   nonce: BigInt!
+  # Block timestamp
+  timestamp: BigInt!
+  # Reference to transaction
+  transaction: Transaction!
+}
+
+# Individual point burn record
+type PointBurn @entity(immutable: true) {
+  # Format: {txHash}-{logIndex}
+  id: ID!
+  # Burner address (who burned the tokens)
+  from: Bytes!
+  # Amount of points burned
+  amount: BigInt!
   # Block timestamp
   timestamp: BigInt!
   # Reference to transaction

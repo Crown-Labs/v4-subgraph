@@ -41,5 +41,11 @@ module.exports = {
         'local-rules/lowercase-0x-addresses': 'error',
       },
     },
+    {
+      files: ['src/types/**/*.ts'],
+      rules: {
+        'prefer-const': 'off',
+      },
+    },
   ],
 }

@@ -1,3 +1,3 @@
-import { handleClaimed } from './pointDistributor'
+import { handleClaimed, handleBurn } from './pointDistributor'
 
-export { handleClaimed }
+export { handleClaimed, handleBurn }

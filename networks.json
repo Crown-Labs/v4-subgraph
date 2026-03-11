@@ -3,6 +3,10 @@
     "KittycornPointDistributor": {
       "address": "0x0d9137F6816020d5aD7E9ac67e824F06a7cEC4bb",
       "startBlock": 10269300
+    },
+    "PointToken": {
+      "address": "0xA3E25fa12881c78FB70Bb8bF8DAb39EA1ecE637b",
+      "startBlock": 10269300
     }
   },
   "arbitrum-one": {
