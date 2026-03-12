@@ -1,6 +1,6 @@
 import { Claimed } from '../types/KittycornPointDistributor/KittycornPointDistributor'
 import { Burn } from '../types/PointToken/PointToken'
-import { PointClaim, PointBurn } from '../types/schema'
+import { PointBurn, PointClaim } from '../types/schema'
 import { loadTransaction } from '../utils'
 import { eventId } from '../utils/id'
 
