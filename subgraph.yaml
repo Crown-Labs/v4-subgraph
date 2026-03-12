@@ -11,8 +11,8 @@ dataSources:
     network: sepolia
     source:
       abi: KittycornPointDistributor
-      address: "0x0d9137F6816020d5aD7E9ac67e824F06a7cEC4bb"
-      startBlock: 10269300
+      address: "0x8a04972c8ac160f83705959951623A51d081BcB7"
+      startBlock: 10430600
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -32,8 +32,8 @@ dataSources:
     network: sepolia
     source:
       abi: PointToken
-      address: "0xA3E25fa12881c78FB70Bb8bF8DAb39EA1ecE637b"
-      startBlock: 10269300
+      address: "0x08AB58e88931931E17F7DB3AE70c1d13b5F031ed"
+      startBlock: 10430600
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
