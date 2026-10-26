@@ -19,7 +19,7 @@
     "deploy-feat:arbitrum-one": "source .env && graph deploy --node https://subgraph.0xnode.cloud/deploy/ --ipfs https://ipfs.0xnode.cloud -l 0.0.1 --network arbitrum-one kittycorn-arbitrum-one/v4-subgraph-features subgraph-features.yaml --access-token $DEPLOY_KEY",
     "create-feat:arbitrum-one": "source .env && graph create --node https://subgraph.0xnode.cloud/deploy/ kittycorn-arbitrum-one/v4-subgraph-features --access-token $DEPLOY_KEY",
     "remove-feat:arbitrum-one": "source .env && graph remove --node https://subgraph.0xnode.cloud/deploy/ kittycorn-arbitrum-one/v4-subgraph-features --access-token $DEPLOY_KEY",
-    "deploy:ormi:sepolia": ". ./.env && graph deploy --node https://subgraph.api.ormilabs.com/deploy --ipfs https://subgraph.api.ormilabs.com/ipfs -l ${VERSION_LABEL:-v0.0.1} --network sepolia kittycorn-sepolia --deploy-key $ORMI_DEPLOY_KEY",
+    "deploy:ormi:sepolia": ". ./.env && graph deploy --node https://api.subgraph.ormilabs.com/deploy --ipfs https://api.subgraph.ormilabs.com/ipfs -l ${VERSION_LABEL:-v0.0.1} --network sepolia kittycorn-sepolia --deploy-key $ORMI_DEPLOY_KEY",
     "deploy:local": "graph deploy --node http://localhost:8020 --ipfs http://localhost:5001 -l 0.0.1 --network arbitrum-one v4-subgraph",
     "create:local": "graph create --node http://localhost:8020 v4-subgraph",
     "remove:local": "graph remove --node http://localhost:8020 v4-subgraph",
