@@ -18,6 +18,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 All deployments require a `.env` file with `DEPLOY_KEY` for authenticated deployments:
 
 - `yarn deploy:sepolia` - Deploy to Sepolia testnet
+- `yarn deploy:ormi:sepolia` - Deploy `kittycorn-sepolia` to Ormi 0xGraph (network `sepolia`); needs `ORMI_DEPLOY_KEY` in `.env`, optional `VERSION_LABEL` (default `v0.0.1`)
+- `yarn deploy:ormi:arbitrum-one` - Deploy `kittycorn-arbitrum-one` to Ormi 0xGraph (network `arbitrum-one`); same `ORMI_DEPLOY_KEY` / `VERSION_LABEL`
 - `yarn deploy:local` - Deploy to local graph node (http://localhost:8020)
 - `yarn deploy:kittycorn` - Deploy to mainnet
 
