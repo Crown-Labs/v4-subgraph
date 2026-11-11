@@ -1,7 +1,8 @@
-version: "3"
 services:
   graph-node:
     image: graphprotocol/graph-node:latest
+    # graph-node publishes amd64 images only; on Apple Silicon this runs under emulation
+    platform: linux/amd64
     ports:
       - "8000:8000"
       - "8001:8001"
@@ -17,18 +18,19 @@ services:
       postgres_pass: let-me-in
       postgres_db: graph-node
       ipfs: "ipfs:5001"
-      # ethereum: "sepolia:https://sepolia.0xnode.cloud"
-      # ethereum: "sepolia-dev:https://sepolia.0xnode.cloud"
-      ethereum: "arbitrum-one:https://arb.0xnode.cloud"
+      # Set BASE_SEPOLIA_RPC_URL in .env (archive RPC; never commit the key)
+      ethereum: "base-sepolia:${BASE_SEPOLIA_RPC_URL:?set BASE_SEPOLIA_RPC_URL in .env}"
       GRAPH_LOG: debug
   ipfs:
-    image: ipfs/go-ipfs:latest
+    # ipfs/go-ipfs is deprecated: its latest tag only prints "use ipfs/kubo" and exits
+    image: ipfs/kubo:v0.38.1
     ports:
       - "5001:5001"
     volumes:
       - ./data/ipfs:/data/ipfs
   postgres:
-    image: postgres
+    # Pinned: postgres 18+ moved PGDATA/VOLUME to /var/lib/postgresql, which breaks the mount below
+    image: postgres:16
     ports:
       - "5432:5432"
     command:

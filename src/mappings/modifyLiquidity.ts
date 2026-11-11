@@ -194,11 +194,6 @@ export function handleModifyLiquidityHelper(
     modifyLiquidity.tickUpper = BigInt.fromI32(event.params.tickUpper)
     modifyLiquidity.logIndex = event.logIndex
 
-    // Convert salt (Bytes) to BigInt for tokenId
-    const salt = event.params.salt.toHexString()
-    const saltBigInt = hexToBigInt(salt)
-    const tokenId = saltBigInt.toString()
-
     // tick entities
     const lowerTickIdx = event.params.tickLower
     const upperTickIdx = event.params.tickUpper
@@ -235,6 +230,11 @@ export function handleModifyLiquidityHelper(
     updateTokenHourData(token1, event)
 
     if (isKittycornPMAddress) {
+      // Convert salt (Bytes) to BigInt for tokenId
+      const salt = event.params.salt.toHexString()
+      const saltBigInt = hexToBigInt(salt)
+      const tokenId = saltBigInt.toString()
+
       let liquidityPosition = LiquidityPosition.load(tokenId)
       const position = Position.load(tokenId)
       if (liquidityPosition === null) {

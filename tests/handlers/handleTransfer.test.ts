@@ -1,10 +1,10 @@
 import { Address, ethereum } from '@graphprotocol/graph-ts'
-import { afterEach, assert, clearStore, describe, test } from 'matchstick-as'
+import { afterEach, assert, beforeEach, clearStore, dataSourceMock, describe, test } from 'matchstick-as'
 
 import { handleTransferHelper } from '../../src/mappings/transfer'
 import { Transfer } from '../../src/types/PositionManager/PositionManager'
 import { Position } from '../../src/types/schema'
-import { assertObjectMatches, MOCK_EVENT, POSITION_FIXTURE } from './constants'
+import { assertObjectMatches, MOCK_EVENT, POSITION_FIXTURE, TEST_NETWORK } from './constants'
 
 const from = POSITION_FIXTURE.owner
 const to = Address.fromString('0xE2EE691F237Ee6529B6557F2fCDd3dCF0C59ec63')
@@ -40,8 +40,13 @@ const TRANSFER_EVENT = new Transfer(
 )
 
 describe('handleTransfer', () => {
+  beforeEach(() => {
+    dataSourceMock.setNetwork(TEST_NETWORK)
+  })
+
   afterEach(() => {
     clearStore()
+    dataSourceMock.resetValues()
   })
 
   test('success - updates position owner', () => {
