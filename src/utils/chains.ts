@@ -5,6 +5,7 @@ import { StaticTokenDefinition } from './staticTokenDefinition'
 
 // assemblyscript does not support string enums, hence these constants
 const ARBITRUM_ONE_NETWORK_NAME = 'arbitrum-one'
+const BASE_SEPOLIA_NETWORK_NAME = 'base-sepolia'
 // Note: All token and pool addresses should be lowercased!
 export class SubgraphConfig {
   // deployment address
@@ -126,6 +127,46 @@ export function getSubgraphConfig(): SubgraphConfig {
       kittycornBankAddress: '0xf0e778f51865b9c3bcbfe2b59ad19a12d6d1a0fc',
       kittycornPositionManagerAddress: '0x0989f4a52cc70099392b38e3d405e4f515d12630',
       kittycornMigratorAddress: '0xc78c603644b59ccbc869fa36b72ade24c9e04c40',
+    }
+  } else if (selectedNetwork == BASE_SEPOLIA_NETWORK_NAME) {
+    return {
+      poolManagerAddress: '0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408',
+      // USDC (Circle) / WETH 1% (fee 10000, tickSpacing 200, no hooks), initialized at block 37351689
+      stablecoinWrappedNativePoolId: '0x025d03111ace126acfa746647812b6e921f950821df269826b73ccffebec9814',
+      stablecoinIsToken0: true, // USDC is currency0
+      wrappedNativeAddress: '0x4200000000000000000000000000000000000006', // WETH
+      minimumNativeLocked: BigDecimal.fromString('0'),
+      stablecoinAddresses: [
+        '0x036cbd53842c5426634e7929541ec2318f3dcf7e', // USDC (Circle)
+        '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f', // USDC (Aave testnet asset, underlying of tUSDC)
+        '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a', // USDT (Aave testnet asset, underlying of tUSDT)
+      ],
+      whitelistTokens: [
+        '0x0000000000000000000000000000000000000000', // Native ETH
+        '0x036cbd53842c5426634e7929541ec2318f3dcf7e', // USDC (Circle)
+        '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f', // USDC (Aave testnet)
+        '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a', // USDT (Aave testnet)
+        '0x4200000000000000000000000000000000000006', // WETH
+        '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0', // tWETH
+        '0x0b4104691a6a006f0134d507aae6d35854bad924', // tUSDC
+        '0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc', // tUSDT
+      ],
+      tokenizes: [
+        ['0xd09edda7a0495eac6b921fb9408d2ae55220ebc0', '0x4200000000000000000000000000000000000006'], // tWETH
+        ['0x0b4104691a6a006f0134d507aae6d35854bad924', '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'], // tUSDC
+        ['0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc', '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a'], // tUSDT
+      ],
+      tokenOverrides: [],
+      poolsToSkip: [],
+      poolMappings: [],
+      nativeTokenDetails: {
+        symbol: 'ETH',
+        name: 'Ethereum',
+        decimals: BigInt.fromI32(18),
+      },
+      kittycornBankAddress: '0xcc331ec1d6cf4542f9eb988b49249cfa163081dc',
+      kittycornPositionManagerAddress: '0x8a2d75baadcd2c71b2acf715fc3da68964cea48e',
+      kittycornMigratorAddress: '0x3dd320984b954453d09f69b95d4c9f5bc92a9a58',
     }
   } else {
     throw new Error('Unsupported Network')
