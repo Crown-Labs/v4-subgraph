@@ -253,7 +253,9 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
     token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
 
-    kittycornPositionManager.save()
+    if (poolCollateral !== null) {
+      kittycornPositionManager.save()
+    }
     if (swap !== null) {
       swap.save()
     }
@@ -265,7 +267,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolHourData.save()
     token0HourData.save()
     token1HourData.save()
-    poolHourData.save()
     poolManager.save()
     pool.save()
     token0.save()
