@@ -24,6 +24,17 @@ All deployments (except `deploy:local`) require a `.env` file with `DEPLOY_KEY` 
 
 For new deployments, first run the corresponding `create:*` command.
 
+### Run locally on base-sepolia
+
+1. Put `BASE_SEPOLIA_RPC_URL=<your RPC URL>` in `.env` (see `example.env`). It must be an **archive** RPC: PoolManager starts at block 19088197, and the public `sepolia.base.org` node prunes old state. `docker compose` reads `.env` and refuses to start if the variable is missing.
+2. `docker compose up -d` (postgres is pinned to 16; postgres 18+ moved its data dir and breaks the `./data/postgres` mount)
+3. `yarn codegen`
+4. `yarn create:local:base-sepolia && yarn deploy:local:base-sepolia`. `graph deploy --network` rewrites `subgraph.yaml` with base-sepolia addresses, so check `git diff subgraph.yaml` before committing.
+5. Query at http://localhost:8000/subgraphs/name/v4-subgraph-base-sepolia. Follow indexing with `docker compose logs -f graph-node`.
+6. Reset: `docker compose down && rm -rf ./data` (on Linux the files are root-owned, so use `sudo rm -rf ./data`)
+
+On Apple Silicon, graph-node only ships `linux/amd64` images, so the compose file sets `platform: linux/amd64` and Docker runs it under emulation. It is slower but works. The compose file only configures the `base-sepolia` provider; to run arbitrum-one locally, add an `arbitrum-one:<url>` entry to the `ethereum` env var, separated by a space.
+
 ## Architecture Overview
 
 This is a Uniswap V4 subgraph modified for Kittycorn, tracking DEX activity and lending functionality. The subgraph indexes three main contracts:
