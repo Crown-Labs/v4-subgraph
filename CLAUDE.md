@@ -17,9 +17,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 All deployments require a `.env` file with `DEPLOY_KEY` for authenticated deployments:
 
-- `yarn deploy:sepolia` - Deploy to Sepolia testnet
 - `yarn deploy:local` - Deploy to local graph node (http://localhost:8020)
-- `yarn deploy:kittycorn` - Deploy to mainnet
 
 For new deployments, first run the corresponding `create:*` command.
 

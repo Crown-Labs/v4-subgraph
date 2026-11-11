@@ -7,6 +7,10 @@ import { Pool, Token } from '../../src/types/schema'
 import { SubgraphConfig } from '../../src/utils/chains'
 import { ADDRESS_ZERO, ZERO_BD, ZERO_BI } from '../../src/utils/constants'
 
+// Network used by handlers that read getSubgraphConfig() (no injected TEST_CONFIG).
+// matchstick defaults dataSource.network() to 'mainnet', which is no longer configured.
+export const TEST_NETWORK = 'arbitrum-one'
+
 const POOL_MANAGER_ADDRESS = '0xE8E23e97Fa135823143d6b9Cba9c699040D51F70'
 const USDC_MAINNET_ADDRESS = '0x5d1abc83973c773d122ae7c551251cc9be2baecc'
 const WETH_MAINNET_ADDRESS = '0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2'

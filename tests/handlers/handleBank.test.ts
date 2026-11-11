@@ -1,5 +1,5 @@
 import { Address, BigInt, Bytes, ethereum } from '@graphprotocol/graph-ts'
-import { afterEach, assert, beforeEach, clearStore, describe, test } from 'matchstick-as'
+import { afterEach, assert, beforeEach, clearStore, dataSourceMock, describe, test } from 'matchstick-as'
 
 import { handleBorrow, handleRepay } from '../../src/mappings/bank'
 import { handleModifyLiquidityHelper } from '../../src/mappings/modifyLiquidity'
@@ -15,6 +15,7 @@ import {
   MOCK_EVENT,
   TEST_CONFIG,
   TEST_ETH_PRICE_USD,
+  TEST_NETWORK,
   TEST_USDC_DERIVED_ETH,
   TEST_WETH_DERIVED_ETH,
   USDC_MAINNET_FIXTURE,
@@ -133,6 +134,7 @@ function setupUSDTToken(): void {
 
 describe('handleBorrow', () => {
   beforeEach(() => {
+    dataSourceMock.setNetwork(TEST_NETWORK)
     invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
 
     const bundle = new Bundle('1')
@@ -153,6 +155,7 @@ describe('handleBorrow', () => {
 
   afterEach(() => {
     clearStore()
+    dataSourceMock.resetValues()
   })
 
   test('success - handleBorrow sets borrowToken and borrowAmount on LiquidityPosition', () => {
@@ -238,6 +241,7 @@ describe('handleBorrow', () => {
 
 describe('handleRepay', () => {
   beforeEach(() => {
+    dataSourceMock.setNetwork(TEST_NETWORK)
     invokePoolCreatedWithMockedEthCalls(MOCK_EVENT, TEST_CONFIG)
 
     const bundle = new Bundle('1')
@@ -258,6 +262,7 @@ describe('handleRepay', () => {
 
   afterEach(() => {
     clearStore()
+    dataSourceMock.resetValues()
   })
 
   test('success - handleRepay decreases borrowAmount on LiquidityPosition', () => {
