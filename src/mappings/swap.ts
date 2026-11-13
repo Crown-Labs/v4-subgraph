@@ -17,7 +17,7 @@ import {
 import {
   findNativePerToken,
   getNativePriceInUSD,
-  getTokenizeRefToken,
+  getTokenizeDerivedETH,
   getTrackedAmountUSD,
   sqrtPriceX96ToTokenPrices,
 } from '../utils/pricing'
@@ -72,14 +72,26 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       amount1Abs = amount1.times(BigDecimal.fromString('-1'))
     }
 
-    const tokenize0Ref = getTokenizeRefToken(token0.id, tokenizes)
-    if (tokenize0Ref !== null) {
-      token0.derivedETH = tokenize0Ref.derivedETH
+    const tokenize0DerivedETH = getTokenizeDerivedETH(
+      token0.id,
+      tokenizes,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+    )
+    if (tokenize0DerivedETH !== null) {
+      token0.derivedETH = tokenize0DerivedETH
     }
 
-    const tokenize1Ref = getTokenizeRefToken(token1.id, tokenizes)
-    if (tokenize1Ref !== null) {
-      token1.derivedETH = tokenize1Ref.derivedETH
+    const tokenize1DerivedETH = getTokenizeDerivedETH(
+      token1.id,
+      tokenizes,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+    )
+    if (tokenize1DerivedETH !== null) {
+      token1.derivedETH = tokenize1DerivedETH
     }
 
     const amount0ETH = amount0Abs.times(token0.derivedETH)

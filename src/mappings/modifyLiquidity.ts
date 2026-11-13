@@ -23,7 +23,7 @@ import {
   updateUniswapDayData,
 } from '../utils/intervalUpdates'
 import { getAmount0, getAmount1 } from '../utils/liquidityMath/liquidityAmounts'
-import { calculateAmountUSD, getTokenizeRefToken } from '../utils/pricing'
+import { calculateAmountUSD, getTokenizeDerivedETH } from '../utils/pricing'
 import { createTick } from '../utils/tick'
 
 export function handleModifyLiquidity(event: ModifyLiquidityEvent): void {
@@ -37,6 +37,9 @@ export function handleModifyLiquidityHelper(
   const poolManagerAddress = subgraphConfig.poolManagerAddress
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
   const tokenizes = subgraphConfig.tokenizes
+  const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
+  const stablecoinAddresses = subgraphConfig.stablecoinAddresses
+  const minimumNativeLocked = subgraphConfig.minimumNativeLocked
 
   const poolId = event.params.id.toHexString()
   const pool = Pool.load(poolId)
@@ -84,14 +87,26 @@ export function handleModifyLiquidityHelper(
     const amount0 = convertTokenToDecimal(amount0Raw, token0.decimals)
     const amount1 = convertTokenToDecimal(amount1Raw, token1.decimals)
 
-    const tokenize0Ref = getTokenizeRefToken(token0.id, tokenizes)
-    if (tokenize0Ref !== null) {
-      token0.derivedETH = tokenize0Ref.derivedETH
+    const tokenize0DerivedETH = getTokenizeDerivedETH(
+      token0.id,
+      tokenizes,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+    )
+    if (tokenize0DerivedETH !== null) {
+      token0.derivedETH = tokenize0DerivedETH
     }
 
-    const tokenize1Ref = getTokenizeRefToken(token1.id, tokenizes)
-    if (tokenize1Ref !== null) {
-      token1.derivedETH = tokenize1Ref.derivedETH
+    const tokenize1DerivedETH = getTokenizeDerivedETH(
+      token1.id,
+      tokenizes,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+    )
+    if (tokenize1DerivedETH !== null) {
+      token1.derivedETH = tokenize1DerivedETH
     }
 
     const amountUSD = calculateAmountUSD(amount0, amount1, token0.derivedETH, token1.derivedETH, bundle.ethPriceUSD)

@@ -14,8 +14,9 @@ import { handleModifyLiquidityHelper } from '../../src/mappings/modifyLiquidity'
 import { handleInitializeHelper } from '../../src/mappings/poolManager'
 import { Initialize, ModifyLiquidity } from '../../src/types/PoolManager/PoolManager'
 import { Bundle, PoolManager, Token } from '../../src/types/schema'
-import { ADDRESS_ZERO } from '../../src/utils/constants'
-import { MOCK_EVENT } from '../handlers/constants'
+import { ADDRESS_ZERO, ONE_BD } from '../../src/utils/constants'
+import { safeDiv } from '../../src/utils/index'
+import { createAndStoreTestToken, MOCK_EVENT } from '../handlers/constants'
 
 // Exercises the real base-sepolia config from src/utils/chains.ts (no injected TEST_CONFIG).
 const BASE_SEPOLIA_NETWORK = 'base-sepolia'
@@ -24,6 +25,7 @@ const USDC_ADDRESS = '0x036cbd53842c5426634e7929541ec2318f3dcf7e'
 const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
 const TWETH_ADDRESS = '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0'
 const TUSDC_ADDRESS = '0x0b4104691a6a006f0134d507aae6d35854bad924'
+const AAVE_USDC_ADDRESS = '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f' // underlying of tUSDC, a configured stablecoin
 
 // USDC/WETH 1% reference pool (stablecoinWrappedNativePoolId)
 const REFERENCE_POOL_ID = '0x025d03111ace126acfa746647812b6e921f950821df269826b73ccffebec9814'
@@ -159,6 +161,32 @@ describe('base-sepolia config', () => {
 
     assert.fieldEquals('Token', TWETH_ADDRESS, 'derivedETH', Token.load(WETH_ADDRESS)!.derivedETH.toString())
     assert.fieldEquals('Token', TWETH_ADDRESS, 'derivedETH', '1')
+  })
+
+  test('tUSDC derivedETH is recomputed from the current ETH price instead of copied from a stale underlying', () => {
+    initializeReferencePool()
+    const ethPriceUSD = Bundle.load('1')!.ethPriceUSD
+
+    // The underlying is only refreshed when one of its own pools is swapped. Give it a derivedETH that
+    // belonged to an earlier ETH price (1/903 ETH, i.e. ~$2 per tUSDC at the current price).
+    const stale = BigDecimal.fromString('0.001107')
+    const underlying = createAndStoreTestToken({
+      address: AAVE_USDC_ADDRESS,
+      symbol: 'USDC',
+      name: 'USD Coin',
+      totalSupply: '1000000',
+      decimals: '6',
+      balanceOf: '0',
+    })
+    underlying.derivedETH = stale
+    underlying.save()
+
+    initializePool(TOKENIZED_POOL_ID, TUSDC_ADDRESS, TWETH_ADDRESS, 3000, 60, Q96, 0)
+    modifyLiquidity(TOKENIZED_POOL_ID)
+
+    const expected = safeDiv(ONE_BD, ethPriceUSD).toString()
+    assert.fieldEquals('Token', TUSDC_ADDRESS, 'derivedETH', expected)
+    assert.assertTrue(Token.load(TUSDC_ADDRESS)!.derivedETH.notEqual(stale), 'tUSDC must not inherit the stale value')
   })
 
   test('skips a pool between unknown tokens without creating entities or calling the tokens', () => {

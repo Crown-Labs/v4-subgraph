@@ -141,6 +141,27 @@ export function calculateAmountUSD(
   return amount0.times(token0DerivedETH.times(ethPriceUSD)).plus(amount1.times(token1DerivedETH.times(ethPriceUSD)))
 }
 
+/**
+ * derivedETH for a tokenize token. The underlying's stored derivedETH is only refreshed when a pool
+ * containing the underlying itself is swapped, so copying it would pin the tokenize token to a
+ * stale native price (observed: tUSDC priced at ~$2 while ethPriceUSD had moved). Recompute it from
+ * the current Bundle instead. Returns null when the token is not a tokenize token or its underlying
+ * Token entity does not exist yet.
+ */
+export function getTokenizeDerivedETH(
+  tokenizeAddress: string,
+  tokenizeConfig: Array<string[]>,
+  wrappedNativeAddress: string,
+  stablecoinAddresses: string[],
+  minimumNativeLocked: BigDecimal,
+): BigDecimal | null {
+  const underlying = getTokenizeRefToken(tokenizeAddress, tokenizeConfig)
+  if (underlying === null) {
+    return null
+  }
+  return findNativePerToken(underlying, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+}
+
 export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
   let token: Token | null = null
   const tokenizeAddressLower = tokenizeAddress.toLowerCase()
