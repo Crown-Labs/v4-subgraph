@@ -291,11 +291,10 @@ describe('tokenize derivedETH refresh (base-sepolia config)', () => {
     modifyLiquidity(TOKENIZED_POOL_ID)
     assert.fieldEquals('Token', TUSDC_ADDRESS, 'derivedETH', safeDiv(ONE_BD, ethPrice1).toString())
 
-    // ... then ETH moves on the reference pool, which never touches the underlying's entity
+    // ... then ETH moves on the reference pool, with no event on any pool holding the underlying
     swap(REFERENCE_POOL_ID, REFERENCE_POOL_SQRT_PRICE_X96_MOVED, 199550)
     const ethPrice2 = Bundle.load('1')!.ethPriceUSD
     assert.assertTrue(ethPrice2.notEqual(ethPrice1), 'test setup: the reference pool swap must move ethPriceUSD')
-    assert.fieldEquals('Token', AAVE_USDC_ADDRESS, 'derivedETH', safeDiv(ONE_BD, ethPrice1).toString())
 
     modifyLiquidity(TOKENIZED_POOL_ID)
 
@@ -305,6 +304,33 @@ describe('tokenize derivedETH refresh (base-sepolia config)', () => {
       priceUSD.gt(BigDecimal.fromString('0.999')) && priceUSD.lt(BigDecimal.fromString('1.001')),
       'tUSDC must stay ~$1, got ' + priceUSD.toString(),
     )
+  })
+
+  test('a reference pool swap refreshes every stablecoin Token, not only the two in that pool (the observed $2.09 USDC bug)', () => {
+    initializeReferencePool()
+    const ethPrice1 = Bundle.load('1')!.ethPriceUSD
+    // Aave USDC was last priced when ETH was at ethPrice1 and no pool holding it is ever touched again
+    createUnderlyingUsdc(safeDiv(ONE_BD, ethPrice1))
+    const underlying = Token.load(AAVE_USDC_ADDRESS)!
+    underlying.totalValueLocked = BigDecimal.fromString('240231')
+    underlying.save()
+
+    swap(REFERENCE_POOL_ID, REFERENCE_POOL_SQRT_PRICE_X96_MOVED, 199550)
+
+    const ethPrice2 = Bundle.load('1')!.ethPriceUSD
+    assert.assertTrue(ethPrice2.notEqual(ethPrice1), 'test setup: the reference pool swap must move ethPriceUSD')
+    const expected = safeDiv(ONE_BD, ethPrice2)
+    assert.fieldEquals('Token', AAVE_USDC_ADDRESS, 'derivedETH', expected.toString())
+    // Circle USDC sits in the reference pool itself and is priced by the regular path
+    assert.fieldEquals('Token', USDC_ADDRESS, 'derivedETH', expected.toString())
+    assert.fieldEquals(
+      'Token',
+      AAVE_USDC_ADDRESS,
+      'totalValueLockedUSD',
+      BigDecimal.fromString('240231').times(expected).times(ethPrice2).toString(),
+    )
+    // a stablecoin without a Token entity yet is simply skipped
+    assert.notInStore('Token', '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a')
   })
 
   test('tUSDC is priced as a stablecoin even before a Token entity exists for its underlying', () => {

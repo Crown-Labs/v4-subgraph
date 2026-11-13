@@ -173,6 +173,35 @@ export function getTokenizeDerivedETH(
   return findNativePerToken(underlying, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
 }
 
+/**
+ * A stablecoin's derivedETH is 1 / ethPriceUSD, but findNativePerToken only rewrites it when a pool
+ * holding that stablecoin emits an event. Where those pools are idle (Base Sepolia: the Aave USDC/USDT
+ * pools) the stored value pins the stablecoin, and everything priced through it, to an old native price
+ * (observed: USDC at $2.09, USDT at $7.52 while ethPriceUSD had moved). Call this whenever ethPriceUSD
+ * changes, i.e. on a swap in the stablecoin / wrapped-native pool. Tokens in `skip` are the ones the
+ * caller already holds and saves itself.
+ */
+export function refreshStablecoinDerivedETH(
+  stablecoinAddresses: string[],
+  ethPriceUSD: BigDecimal,
+  skip: string[],
+): void {
+  const derivedETH = safeDiv(ONE_BD, ethPriceUSD)
+  for (let i = 0; i < stablecoinAddresses.length; i++) {
+    const address = stablecoinAddresses[i]
+    if (skip.includes(address)) {
+      continue
+    }
+    const token = Token.load(address)
+    if (token === null) {
+      continue
+    }
+    token.derivedETH = derivedETH
+    token.totalValueLockedUSD = token.totalValueLocked.times(derivedETH).times(ethPriceUSD)
+    token.save()
+  }
+}
+
 /** Lowercase underlying address for a tokenize token, or null when the address is not a tokenize token. */
 export function getTokenizeUnderlyingAddress(tokenizeAddress: string, tokenizeConfig: Array<string[]>): string | null {
   const tokenizeAddressLower = tokenizeAddress.toLowerCase()

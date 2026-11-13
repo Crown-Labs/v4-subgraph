@@ -19,6 +19,7 @@ import {
   getNativePriceInUSD,
   getTokenizeDerivedETH,
   getTrackedAmountUSD,
+  refreshStablecoinDerivedETH,
   sqrtPriceX96ToTokenPrices,
 } from '../utils/pricing'
 import { getIsTokenize } from '../utils/token'
@@ -167,6 +168,12 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     bundle.ethPriceUSD = getNativePriceInUSD(stablecoinWrappedNativePoolId, stablecoinIsToken0)
 
     bundle.save()
+
+    // ethPriceUSD only moves on swaps in the stablecoin / wrapped-native pool; keep every other stablecoin
+    // at 1 / ethPriceUSD too, since nothing else rewrites them while their own pools are idle
+    if (pool.id == stablecoinWrappedNativePoolId) {
+      refreshStablecoinDerivedETH(stablecoinAddresses, bundle.ethPriceUSD, [token0.id, token1.id])
+    }
 
     const isToken0Tokenize = getIsTokenize(token0.id, tokenizes)
     if (isToken0Tokenize == false) {
