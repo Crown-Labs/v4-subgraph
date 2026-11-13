@@ -34,6 +34,8 @@ export const TEST_CONFIG: SubgraphConfig = {
   whitelistTokens: [WETH_MAINNET_ADDRESS, USDC_MAINNET_ADDRESS],
   tokenOverrides: [],
   poolsToSkip: [],
+  restrictPoolsToKnownTokens: false,
+  allowedPoolIds: [],
   poolMappings: [],
   nativeTokenDetails: {
     symbol: 'ETH',

@@ -13,7 +13,7 @@ import {
 import { handleModifyLiquidityHelper } from '../../src/mappings/modifyLiquidity'
 import { handleInitializeHelper } from '../../src/mappings/poolManager'
 import { Initialize, ModifyLiquidity } from '../../src/types/PoolManager/PoolManager'
-import { Bundle, Token } from '../../src/types/schema'
+import { Bundle, PoolManager, Token } from '../../src/types/schema'
 import { ADDRESS_ZERO } from '../../src/utils/constants'
 import { MOCK_EVENT } from '../handlers/constants'
 
@@ -32,6 +32,11 @@ const REFERENCE_POOL_TICK = 200905
 
 // Arbitrary id for a tUSDC/tWETH pool
 const TOKENIZED_POOL_ID = '0x00000000000000000000000000000000000000000000000000000000000000aa'
+// A public pool between two tokens the config knows nothing about (no ERC20 mocks on purpose:
+// an eth_call for them would make matchstick fail, which proves the allowlist runs first)
+const UNKNOWN_POOL_ID = '0x00000000000000000000000000000000000000000000000000000000000000bb'
+const UNKNOWN_TOKEN_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
+const UNKNOWN_TOKEN_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
 const Q96 = '79228162514264337593543950336' // sqrtPriceX96 for price 1, tick 0
 
 function mockErc20(address: string, symbol: string, decimals: i32): void {
@@ -154,5 +159,35 @@ describe('base-sepolia config', () => {
 
     assert.fieldEquals('Token', TWETH_ADDRESS, 'derivedETH', Token.load(WETH_ADDRESS)!.derivedETH.toString())
     assert.fieldEquals('Token', TWETH_ADDRESS, 'derivedETH', '1')
+  })
+
+  test('skips a pool between unknown tokens without creating entities or calling the tokens', () => {
+    initializePool(UNKNOWN_POOL_ID, UNKNOWN_TOKEN_A, UNKNOWN_TOKEN_B, 3000, 60, Q96, 0)
+
+    assert.notInStore('Pool', UNKNOWN_POOL_ID)
+    assert.notInStore('Token', UNKNOWN_TOKEN_A)
+    assert.notInStore('Token', UNKNOWN_TOKEN_B)
+    assert.entityCount('PoolDayData', 0)
+  })
+
+  test('keeps the PoolManager and Bundle singletons when the first pool seen is skipped', () => {
+    initializePool(UNKNOWN_POOL_ID, UNKNOWN_TOKEN_A, UNKNOWN_TOKEN_B, 3000, 60, Q96, 0)
+
+    assert.fieldEquals('PoolManager', PoolManager.load('0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408')!.id, 'poolCount', '0')
+    assert.fieldEquals('Bundle', '1', 'ethPriceUSD', '0')
+
+    // later handlers on the skipped pool must return quietly instead of hitting a null assert
+    modifyLiquidity(UNKNOWN_POOL_ID)
+    assert.entityCount('ModifyLiquidity', 0)
+    assert.entityCount('Transaction', 0)
+  })
+
+  test('still indexes the reference pool and tokenize pools with the allowlist on', () => {
+    initializeReferencePool()
+    initializePool(TOKENIZED_POOL_ID, TUSDC_ADDRESS, TWETH_ADDRESS, 3000, 60, Q96, 0)
+
+    assert.fieldEquals('Pool', REFERENCE_POOL_ID, 'id', REFERENCE_POOL_ID)
+    assert.fieldEquals('Pool', TOKENIZED_POOL_ID, 'id', TOKENIZED_POOL_ID)
+    assert.fieldEquals('PoolManager', '0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408', 'poolCount', '2')
   })
 })
