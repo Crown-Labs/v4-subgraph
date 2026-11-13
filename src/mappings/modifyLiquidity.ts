@@ -111,9 +111,11 @@ export function handleModifyLiquidityHelper(
 
     const amountUSD = calculateAmountUSD(amount0, amount1, token0.derivedETH, token1.derivedETH, bundle.ethPriceUSD)
 
-    // reset tvl aggregates until new amounts calculated
+    // reset tvl aggregates until new amounts calculated. The Kittycorn aggregate holds the full TVL of every
+    // pool flagged isKittycornLiquidity, so subtract by that flag (whoever sent this event), not by sender:
+    // the flag is still false on the pool's first Kittycorn event, when nothing has been added yet.
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)
-    if (isKittycornPMAddress) {
+    if (pool.isKittycornLiquidity) {
       kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.minus(
         pool.totalValueLockedETH,
       )
@@ -166,13 +168,6 @@ export function handleModifyLiquidityHelper(
     }
 
     if (isKittycornPMAddress) {
-      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
-        pool.totalValueLockedETH,
-      )
-      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
-        bundle.ethPriceUSD,
-      )
-
       // set pool kittycorn liquidity flag
       if (!pool.isKittycornLiquidity) {
         pool.isKittycornLiquidity = true
@@ -183,6 +178,15 @@ export function handleModifyLiquidityHelper(
       if (!token1.isKittycornLiquidity) {
         token1.isKittycornLiquidity = true
       }
+    }
+
+    if (pool.isKittycornLiquidity) {
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
+        bundle.ethPriceUSD,
+      )
     }
 
     if (poolCollateral !== null) {
@@ -238,6 +242,14 @@ export function handleModifyLiquidityHelper(
     lowerTick.save()
     upperTick.save()
 
+    // persist before the interval updates: they re-load Pool / PoolManager from the store, so saving
+    // afterwards would leave every day/hour row (liquidity, tvlUSD, txCount) one event behind
+    kittycornPositionManager.save()
+    token0.save()
+    token1.save()
+    pool.save()
+    poolManager.save()
+
     updateUniswapDayData(event, poolManagerAddress)
     updatePoolDayData(event.params.id.toHexString(), event)
     updatePoolHourData(event.params.id.toHexString(), event)
@@ -286,11 +298,6 @@ export function handleModifyLiquidityHelper(
       liquidityPosition.save()
     }
 
-    kittycornPositionManager.save()
-    token0.save()
-    token1.save()
-    pool.save()
-    poolManager.save()
     modifyLiquidity.save()
   }
 }

@@ -123,9 +123,18 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
       kittycornPositionManager.totalFeesUSD = kittycornPositionManager.totalFeesUSD.plus(feesUSD)
     }
 
-    // reset aggregate tvl before individual pool tvl updates
+    // reset aggregate tvl before individual pool tvl updates. The Kittycorn aggregates hold this pool's
+    // full TVL too (see handleModifyLiquidity), so they must follow the swap-induced change as well or the
+    // next liquidity change subtracts a value that was never added.
     const currentPoolTvlETH = pool.totalValueLockedETH
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(currentPoolTvlETH)
+    if (pool.isKittycornLiquidity) {
+      kittycornPositionManager.totalValueLockedETH =
+        kittycornPositionManager.totalValueLockedETH.minus(currentPoolTvlETH)
+    }
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.minus(currentPoolTvlETH)
+    }
 
     // pool volume
     pool.volumeToken0 = pool.volumeToken0.plus(amount0Abs)
@@ -195,8 +204,35 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.plus(pool.totalValueLockedETH)
     poolManager.totalValueLockedUSD = poolManager.totalValueLockedETH.times(bundle.ethPriceUSD)
 
+    if (pool.isKittycornLiquidity) {
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
+        bundle.ethPriceUSD,
+      )
+    }
+    if (poolCollateral !== null) {
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalCollateralUSD = kittycornPositionManager.totalCollateralETH.times(
+        bundle.ethPriceUSD,
+      )
+    }
+
     token0.totalValueLockedUSD = token0.totalValueLocked.times(token0.derivedETH).times(bundle.ethPriceUSD)
     token1.totalValueLockedUSD = token1.totalValueLocked.times(token1.derivedETH).times(bundle.ethPriceUSD)
+
+    // persist before the interval updates: they re-load Pool / PoolManager / KittycornPositionManager from
+    // the store, so saving afterwards would leave every day/hour row one event behind
+    poolManager.save()
+    pool.save()
+    token0.save()
+    token1.save()
+    if (pool.isKittycornLiquidity || poolCollateral !== null) {
+      kittycornPositionManager.save()
+    }
 
     // create Swap event only for Kittycorn pools
     const transaction = loadTransaction(event)
@@ -274,9 +310,6 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     token1HourData.untrackedVolumeUSD = token1HourData.untrackedVolumeUSD.plus(amountTotalUSDTracked)
     token1HourData.feesUSD = token1HourData.feesUSD.plus(feesUSD)
 
-    if (poolCollateral !== null) {
-      kittycornPositionManager.save()
-    }
     if (swap !== null) {
       swap.save()
     }
@@ -288,9 +321,5 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
     poolHourData.save()
     token0HourData.save()
     token1HourData.save()
-    poolManager.save()
-    pool.save()
-    token0.save()
-    token1.save()
   }
 }
