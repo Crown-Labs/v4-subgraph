@@ -145,8 +145,9 @@ export function calculateAmountUSD(
  * derivedETH for a tokenize token. The underlying's stored derivedETH is only refreshed when a pool
  * containing the underlying itself is swapped, so copying it would pin the tokenize token to a
  * stale native price (observed: tUSDC priced at ~$2 while ethPriceUSD had moved). Recompute it from
- * the current Bundle instead. Returns null when the token is not a tokenize token or its underlying
- * Token entity does not exist yet.
+ * the current Bundle instead. Stablecoin and wrapped-native underlyings need no Token entity at all;
+ * other underlyings fall back to findNativePerToken over their whitelisted pools. Returns null when
+ * the token is not a tokenize token or (for the fallback) its underlying Token does not exist yet.
  */
 export function getTokenizeDerivedETH(
   tokenizeAddress: string,
@@ -155,23 +156,35 @@ export function getTokenizeDerivedETH(
   stablecoinAddresses: string[],
   minimumNativeLocked: BigDecimal,
 ): BigDecimal | null {
-  const underlying = getTokenizeRefToken(tokenizeAddress, tokenizeConfig)
+  const underlyingAddress = getTokenizeUnderlyingAddress(tokenizeAddress, tokenizeConfig)
+  if (underlyingAddress === null) {
+    return null
+  }
+  if (underlyingAddress == wrappedNativeAddress || underlyingAddress == ADDRESS_ZERO) {
+    return ONE_BD
+  }
+  if (stablecoinAddresses.includes(underlyingAddress)) {
+    return safeDiv(ONE_BD, Bundle.load('1')!.ethPriceUSD)
+  }
+  const underlying = Token.load(underlyingAddress)
   if (underlying === null) {
     return null
   }
   return findNativePerToken(underlying, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
 }
 
-export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
-  let token: Token | null = null
+/** Lowercase underlying address for a tokenize token, or null when the address is not a tokenize token. */
+export function getTokenizeUnderlyingAddress(tokenizeAddress: string, tokenizeConfig: Array<string[]>): string | null {
   const tokenizeAddressLower = tokenizeAddress.toLowerCase()
-
-  for (let tokenizeConfigIndex = 0; tokenizeConfigIndex < tokenizeConfig.length; tokenizeConfigIndex++) {
-    // Compare addresses in lowercase to prevent case-sensitivity issues
-    if (tokenizeAddressLower == tokenizeConfig[tokenizeConfigIndex][0].toLowerCase()) {
-      token = Token.load(tokenizeConfig[tokenizeConfigIndex][1])
-      break
+  for (let i = 0; i < tokenizeConfig.length; i++) {
+    if (tokenizeAddressLower == tokenizeConfig[i][0].toLowerCase()) {
+      return tokenizeConfig[i][1].toLowerCase()
     }
   }
-  return token
+  return null
+}
+
+export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
+  const underlyingAddress = getTokenizeUnderlyingAddress(tokenizeAddress, tokenizeConfig)
+  return underlyingAddress === null ? null : Token.load(underlyingAddress)
 }
