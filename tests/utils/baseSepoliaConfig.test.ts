@@ -173,7 +173,12 @@ describe('base-sepolia config', () => {
   test('keeps the PoolManager and Bundle singletons when the first pool seen is skipped', () => {
     initializePool(UNKNOWN_POOL_ID, UNKNOWN_TOKEN_A, UNKNOWN_TOKEN_B, 3000, 60, Q96, 0)
 
-    assert.fieldEquals('PoolManager', PoolManager.load('0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408')!.id, 'poolCount', '0')
+    assert.fieldEquals(
+      'PoolManager',
+      PoolManager.load('0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408')!.id,
+      'poolCount',
+      '0',
+    )
     assert.fieldEquals('Bundle', '1', 'ethPriceUSD', '0')
 
     // later handlers on the skipped pool must return quietly instead of hitting a null assert

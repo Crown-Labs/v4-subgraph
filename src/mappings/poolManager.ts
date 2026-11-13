@@ -4,9 +4,9 @@ import { Initialize as InitializeEvent } from '../types/PoolManager/PoolManager'
 import { PoolAllowCollateral, PoolManager } from '../types/schema'
 import { Bundle, Pool, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
-import { isPoolAllowed } from '../utils/poolAllowlist'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
+import { isPoolAllowed } from '../utils/poolAllowlist'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
 import {
   fetchTokenDecimals,
