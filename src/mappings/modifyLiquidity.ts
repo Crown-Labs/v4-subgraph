@@ -23,7 +23,7 @@ import {
   updateUniswapDayData,
 } from '../utils/intervalUpdates'
 import { getAmount0, getAmount1 } from '../utils/liquidityMath/liquidityAmounts'
-import { calculateAmountUSD, getTokenizeRefToken } from '../utils/pricing'
+import { calculateAmountUSD, getTokenizeDerivedETH } from '../utils/pricing'
 import { createTick } from '../utils/tick'
 
 export function handleModifyLiquidity(event: ModifyLiquidityEvent): void {
@@ -37,20 +37,25 @@ export function handleModifyLiquidityHelper(
   const poolManagerAddress = subgraphConfig.poolManagerAddress
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
   const tokenizes = subgraphConfig.tokenizes
+  const wrappedNativeAddress = subgraphConfig.wrappedNativeAddress
+  const stablecoinAddresses = subgraphConfig.stablecoinAddresses
+  const minimumNativeLocked = subgraphConfig.minimumNativeLocked
 
-  const bundle = Bundle.load('1')!
   const poolId = event.params.id.toHexString()
   const pool = Pool.load(poolId)
+
+  // unknown pool (never initialised, or skipped by the allowlist): nothing to update
+  if (pool === null) {
+    log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId])
+    return
+  }
+
+  const bundle = Bundle.load('1')!
   const poolManager = PoolManager.load(poolManagerAddress)
 
   const poolCollateral = PoolAllowCollateral.load(poolId)
   const kittycornPositionManager = loadKittycornPositionManager(kittycornPositionManagerAddress)
   const isKittycornPMAddress = event.params.sender.equals(Address.fromString(kittycornPositionManagerAddress))
-
-  if (pool === null) {
-    log.debug('handleModifyLiquidityHelper: pool not found {}', [poolId])
-    return
-  }
 
   if (poolManager === null) {
     log.debug('handleModifyLiquidityHelper: pool manager not found {}', [poolManagerAddress])
@@ -82,21 +87,35 @@ export function handleModifyLiquidityHelper(
     const amount0 = convertTokenToDecimal(amount0Raw, token0.decimals)
     const amount1 = convertTokenToDecimal(amount1Raw, token1.decimals)
 
-    const tokenize0Ref = getTokenizeRefToken(token0.id, tokenizes)
-    if (tokenize0Ref !== null) {
-      token0.derivedETH = tokenize0Ref.derivedETH
+    const tokenize0DerivedETH = getTokenizeDerivedETH(
+      token0.id,
+      tokenizes,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+    )
+    if (tokenize0DerivedETH !== null) {
+      token0.derivedETH = tokenize0DerivedETH
     }
 
-    const tokenize1Ref = getTokenizeRefToken(token1.id, tokenizes)
-    if (tokenize1Ref !== null) {
-      token1.derivedETH = tokenize1Ref.derivedETH
+    const tokenize1DerivedETH = getTokenizeDerivedETH(
+      token1.id,
+      tokenizes,
+      wrappedNativeAddress,
+      stablecoinAddresses,
+      minimumNativeLocked,
+    )
+    if (tokenize1DerivedETH !== null) {
+      token1.derivedETH = tokenize1DerivedETH
     }
 
     const amountUSD = calculateAmountUSD(amount0, amount1, token0.derivedETH, token1.derivedETH, bundle.ethPriceUSD)
 
-    // reset tvl aggregates until new amounts calculated
+    // reset tvl aggregates until new amounts calculated. The Kittycorn aggregate holds the full TVL of every
+    // pool flagged isKittycornLiquidity, so subtract by that flag (whoever sent this event), not by sender:
+    // the flag is still false on the pool's first Kittycorn event, when nothing has been added yet.
     poolManager.totalValueLockedETH = poolManager.totalValueLockedETH.minus(pool.totalValueLockedETH)
-    if (isKittycornPMAddress) {
+    if (pool.isKittycornLiquidity) {
       kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.minus(
         pool.totalValueLockedETH,
       )
@@ -149,13 +168,6 @@ export function handleModifyLiquidityHelper(
     }
 
     if (isKittycornPMAddress) {
-      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
-        pool.totalValueLockedETH,
-      )
-      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
-        bundle.ethPriceUSD,
-      )
-
       // set pool kittycorn liquidity flag
       if (!pool.isKittycornLiquidity) {
         pool.isKittycornLiquidity = true
@@ -166,6 +178,15 @@ export function handleModifyLiquidityHelper(
       if (!token1.isKittycornLiquidity) {
         token1.isKittycornLiquidity = true
       }
+    }
+
+    if (pool.isKittycornLiquidity) {
+      kittycornPositionManager.totalValueLockedETH = kittycornPositionManager.totalValueLockedETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalValueLockedUSD = kittycornPositionManager.totalValueLockedETH.times(
+        bundle.ethPriceUSD,
+      )
     }
 
     if (poolCollateral !== null) {
@@ -221,6 +242,14 @@ export function handleModifyLiquidityHelper(
     lowerTick.save()
     upperTick.save()
 
+    // persist before the interval updates: they re-load Pool / PoolManager from the store, so saving
+    // afterwards would leave every day/hour row (liquidity, tvlUSD, txCount) one event behind
+    kittycornPositionManager.save()
+    token0.save()
+    token1.save()
+    pool.save()
+    poolManager.save()
+
     updateUniswapDayData(event, poolManagerAddress)
     updatePoolDayData(event.params.id.toHexString(), event)
     updatePoolHourData(event.params.id.toHexString(), event)
@@ -269,11 +298,6 @@ export function handleModifyLiquidityHelper(
       liquidityPosition.save()
     }
 
-    kittycornPositionManager.save()
-    token0.save()
-    token1.save()
-    pool.save()
-    poolManager.save()
     modifyLiquidity.save()
   }
 }
