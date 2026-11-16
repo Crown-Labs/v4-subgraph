@@ -45,6 +45,16 @@ export class SubgraphConfig {
   // skip the creation of these pools in handlePoolCreated. for new chains this is typically empty.
   poolsToSkip: string[]
 
+  // when true, handleInitialize only indexes the stablecoinWrappedNativePoolId, the allowedPoolIds, and
+  // pools whose two currencies are all known tokens (native, wrapped native, stablecoins, tokenize tokens
+  // and their underlyings). Every other pool is never created, so none of its swaps, liquidity changes,
+  // ticks or day/hour rows are indexed either. Changing this value requires a full re-index.
+  restrictPoolsToKnownTokens: boolean
+
+  // pool ids indexed regardless of their currencies while restrictPoolsToKnownTokens is on, e.g. a
+  // collateral pool that includes a token outside the known set
+  allowedPoolIds: string[]
+
   // initialize this list of pools and token addresses on factory creation. for new chains this is typically empty.
   poolMappings: Array<Address[]>
 
@@ -118,6 +128,8 @@ export function getSubgraphConfig(): SubgraphConfig {
         },
       ],
       poolsToSkip: [],
+      restrictPoolsToKnownTokens: false,
+      allowedPoolIds: [],
       poolMappings: [],
       nativeTokenDetails: {
         symbol: 'ETH',
@@ -158,6 +170,8 @@ export function getSubgraphConfig(): SubgraphConfig {
       ],
       tokenOverrides: [],
       poolsToSkip: [],
+      restrictPoolsToKnownTokens: true, // Kittycorn-only deployment; see src/utils/poolAllowlist.ts
+      allowedPoolIds: [],
       poolMappings: [],
       nativeTokenDetails: {
         symbol: 'ETH',
