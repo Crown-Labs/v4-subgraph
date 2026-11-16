@@ -141,16 +141,79 @@ export function calculateAmountUSD(
   return amount0.times(token0DerivedETH.times(ethPriceUSD)).plus(amount1.times(token1DerivedETH.times(ethPriceUSD)))
 }
 
-export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
-  let token: Token | null = null
-  const tokenizeAddressLower = tokenizeAddress.toLowerCase()
+/**
+ * derivedETH for a tokenize token. The underlying's stored derivedETH is only refreshed when a pool
+ * containing the underlying itself is swapped, so copying it would pin the tokenize token to a
+ * stale native price (observed: tUSDC priced at ~$2 while ethPriceUSD had moved). Recompute it from
+ * the current Bundle instead. Stablecoin and wrapped-native underlyings need no Token entity at all;
+ * other underlyings fall back to findNativePerToken over their whitelisted pools. Returns null when
+ * the token is not a tokenize token or (for the fallback) its underlying Token does not exist yet.
+ */
+export function getTokenizeDerivedETH(
+  tokenizeAddress: string,
+  tokenizeConfig: Array<string[]>,
+  wrappedNativeAddress: string,
+  stablecoinAddresses: string[],
+  minimumNativeLocked: BigDecimal,
+): BigDecimal | null {
+  const underlyingAddress = getTokenizeUnderlyingAddress(tokenizeAddress, tokenizeConfig)
+  if (underlyingAddress === null) {
+    return null
+  }
+  if (underlyingAddress == wrappedNativeAddress || underlyingAddress == ADDRESS_ZERO) {
+    return ONE_BD
+  }
+  if (stablecoinAddresses.includes(underlyingAddress)) {
+    return safeDiv(ONE_BD, Bundle.load('1')!.ethPriceUSD)
+  }
+  const underlying = Token.load(underlyingAddress)
+  if (underlying === null) {
+    return null
+  }
+  return findNativePerToken(underlying, wrappedNativeAddress, stablecoinAddresses, minimumNativeLocked)
+}
 
-  for (let tokenizeConfigIndex = 0; tokenizeConfigIndex < tokenizeConfig.length; tokenizeConfigIndex++) {
-    // Compare addresses in lowercase to prevent case-sensitivity issues
-    if (tokenizeAddressLower == tokenizeConfig[tokenizeConfigIndex][0].toLowerCase()) {
-      token = Token.load(tokenizeConfig[tokenizeConfigIndex][1])
-      break
+/**
+ * A stablecoin's derivedETH is 1 / ethPriceUSD, but findNativePerToken only rewrites it when a pool
+ * holding that stablecoin emits an event. Where those pools are idle (Base Sepolia: the Aave USDC/USDT
+ * pools) the stored value pins the stablecoin, and everything priced through it, to an old native price
+ * (observed: USDC at $2.09, USDT at $7.52 while ethPriceUSD had moved). Call this whenever ethPriceUSD
+ * changes, i.e. on a swap in the stablecoin / wrapped-native pool. Tokens in `skip` are the ones the
+ * caller already holds and saves itself.
+ */
+export function refreshStablecoinDerivedETH(
+  stablecoinAddresses: string[],
+  ethPriceUSD: BigDecimal,
+  skip: string[],
+): void {
+  const derivedETH = safeDiv(ONE_BD, ethPriceUSD)
+  for (let i = 0; i < stablecoinAddresses.length; i++) {
+    const address = stablecoinAddresses[i]
+    if (skip.includes(address)) {
+      continue
+    }
+    const token = Token.load(address)
+    if (token === null) {
+      continue
+    }
+    token.derivedETH = derivedETH
+    token.totalValueLockedUSD = token.totalValueLocked.times(derivedETH).times(ethPriceUSD)
+    token.save()
+  }
+}
+
+/** Lowercase underlying address for a tokenize token, or null when the address is not a tokenize token. */
+export function getTokenizeUnderlyingAddress(tokenizeAddress: string, tokenizeConfig: Array<string[]>): string | null {
+  const tokenizeAddressLower = tokenizeAddress.toLowerCase()
+  for (let i = 0; i < tokenizeConfig.length; i++) {
+    if (tokenizeAddressLower == tokenizeConfig[i][0].toLowerCase()) {
+      return tokenizeConfig[i][1].toLowerCase()
     }
   }
-  return token
+  return null
+}
+
+export function getTokenizeRefToken(tokenizeAddress: string, tokenizeConfig: Array<string[]>): Token | null {
+  const underlyingAddress = getTokenizeUnderlyingAddress(tokenizeAddress, tokenizeConfig)
+  return underlyingAddress === null ? null : Token.load(underlyingAddress)
 }

@@ -6,6 +6,7 @@ import { Bundle, Pool, Token } from '../types/schema'
 import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ADDRESS_ZERO, ONE_BI, ZERO_BD, ZERO_BI } from '../utils/constants'
 import { updatePoolDayData, updatePoolHourData } from '../utils/intervalUpdates'
+import { isPoolAllowed } from '../utils/poolAllowlist'
 import { findNativePerToken, getNativePriceInUSD, sqrtPriceX96ToTokenPrices } from '../utils/pricing'
 import {
   fetchTokenDecimals,
@@ -43,7 +44,9 @@ export function handleInitializeHelper(
 
   // load pool manager
   let poolManager = PoolManager.load(poolManagerAddress)
+  let isNewPoolManager = false
   if (poolManager === null) {
+    isNewPoolManager = true
     poolManager = new PoolManager(poolManagerAddress)
     poolManager.poolCount = ZERO_BI
     poolManager.totalVolumeETH = ZERO_BD
@@ -62,6 +65,18 @@ export function handleInitializeHelper(
     const bundle = new Bundle('1')
     bundle.ethPriceUSD = ZERO_BD
     bundle.save()
+  }
+
+  if (
+    !isPoolAllowed(poolId, event.params.currency0.toHexString(), event.params.currency1.toHexString(), subgraphConfig)
+  ) {
+    // Keep the PoolManager and Bundle singletons even when the very first pool is skipped: handleSwap and
+    // handleModifyLiquidity load them before they find out the pool is unknown.
+    if (isNewPoolManager) {
+      poolManager.save()
+    }
+    log.debug('handleInitializeHelper: pool {} skipped by allowlist', [poolId])
+    return
   }
 
   poolManager.poolCount = poolManager.poolCount.plus(ONE_BI)

@@ -192,7 +192,7 @@ type Transaction @entity {
   unsubscriptions: [Unsubscribe]! @derivedFrom(field: "transaction")
 }
 
-type Swap @entity {
+type Swap @entity(immutable: true) {
   # transaction hash + "#" + index in swaps Transaction array
   id: ID!
   # pointer to transaction
@@ -225,7 +225,7 @@ type Swap @entity {
   logIndex: BigInt
 }
 
-type ModifyLiquidity @entity {
+type ModifyLiquidity @entity(immutable: true) {
   # transaction hash + "#" + index in mints Transaction array
   id: ID!
   # which txn the ModifyLiquidity was included in
@@ -448,7 +448,7 @@ type Position @entity {
   isMigrated: Boolean!
 }
 
-type Subscribe @entity {
+type Subscribe @entity(immutable: true) {
   # transaction hash + '-' + log index
   id: ID!
   # token id of position subscribed to
@@ -467,7 +467,7 @@ type Subscribe @entity {
   position: Position!
 }
 
-type Unsubscribe @entity {
+type Unsubscribe @entity(immutable: true) {
   # transaction hash + '-' + log index
   id: ID!
   # token id of position unsubscribed from
@@ -486,7 +486,7 @@ type Unsubscribe @entity {
   position: Position!
 }
 
-type Transfer @entity {
+type Transfer @entity(immutable: true) {
   # transaction hash + '-' + log index
   id: ID!
   # token id of position
