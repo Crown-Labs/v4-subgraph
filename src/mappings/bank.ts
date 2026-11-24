@@ -121,8 +121,21 @@ export function handleSetConfigCollateralHelper(
   const pool = Pool.load(poolId)
   if (poolCollateral === null) {
     kittycornPositionManager.poolCount = kittycornPositionManager.poolCount.plus(ONE_BI)
-    kittycornPositionManager.save()
     poolCollateral = new PoolAllowCollateral(poolId)
+    // handleSwap / handleModifyLiquidity keep totalCollateralETH equal to the summed TVL of every configured
+    // pool by subtracting the pool's previous TVL and adding the new one. A pool that already holds
+    // liquidity when it is configured must therefore be added here, or its first later event subtracts a
+    // value that was never added.
+    if (pool !== null && pool.totalValueLockedETH.gt(ZERO_BD)) {
+      const bundle = Bundle.load('1')
+      kittycornPositionManager.totalCollateralETH = kittycornPositionManager.totalCollateralETH.plus(
+        pool.totalValueLockedETH,
+      )
+      kittycornPositionManager.totalCollateralUSD = kittycornPositionManager.totalCollateralETH.times(
+        bundle !== null ? bundle.ethPriceUSD : ZERO_BD,
+      )
+    }
+    kittycornPositionManager.save()
   }
   if (pool !== null) {
     poolCollateral.pool = pool.id
