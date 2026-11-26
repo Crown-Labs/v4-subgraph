@@ -39,6 +39,9 @@ function restrictedConfig(): SubgraphConfig {
     kittycornBankAddress: TEST_CONFIG.kittycornBankAddress,
     kittycornPositionManagerAddress: TEST_CONFIG.kittycornPositionManagerAddress,
     kittycornMigratorAddress: TEST_CONFIG.kittycornMigratorAddress,
+    kittycornRouterAddress: TEST_CONFIG.kittycornRouterAddress,
+    universalRouterAddress: TEST_CONFIG.universalRouterAddress,
+    kittycornMarketAddress: TEST_CONFIG.kittycornMarketAddress,
   }
 }
 

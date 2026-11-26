@@ -69,7 +69,21 @@ export class SubgraphConfig {
 
   // address of the kittycorn migrator contract
   kittycornMigratorAddress: string
+
+  // Kittycorn router / Universal Router wrapper / market contracts. Used only by the Earn exclusion list
+  // (src/utils/earn.ts): these contracts hold tTokens transiently and are not Earn users. '' = not deployed.
+  kittycornRouterAddress: string
+  universalRouterAddress: string
+  kittycornMarketAddress: string
 }
+
+// TODO(new Bank proxy): base-sepolia KittycornBank. The new Bank is deployed behind a TransparentUpgradeableProxy
+// (kittycorn-contracts #75), so this must become the PROXY address. Change it together with
+// networks.json["base-sepolia"].KittycornBank (address + startBlock = proxy creation block), which is the only other
+// place it appears. The value below is the current (pre-proxy) Bank, kept as a placeholder.
+// Earn handlers do not read this constant: the Tokenize template receives the Bank address from the data source
+// that created it, so Earn always follows the manifest.
+export const BASE_SEPOLIA_KITTYCORN_BANK_ADDRESS = '0xcc331ec1d6cf4542f9eb988b49249cfa163081dc'
 
 export function getSubgraphConfig(): SubgraphConfig {
   // Update this value to the corresponding chain you want to deploy
@@ -139,6 +153,10 @@ export function getSubgraphConfig(): SubgraphConfig {
       kittycornBankAddress: '0xf0e778f51865b9c3bcbfe2b59ad19a12d6d1a0fc',
       kittycornPositionManagerAddress: '0x0989f4a52cc70099392b38e3d405e4f515d12630',
       kittycornMigratorAddress: '0xc78c603644b59ccbc869fa36b72ade24c9e04c40',
+      // Earn is not indexed on arbitrum-one (only base-sepolia is in scope); unknown, left empty
+      kittycornRouterAddress: '',
+      universalRouterAddress: '',
+      kittycornMarketAddress: '',
     }
   } else if (selectedNetwork == BASE_SEPOLIA_NETWORK_NAME) {
     return {
@@ -178,9 +196,17 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0xcc331ec1d6cf4542f9eb988b49249cfa163081dc',
+      kittycornBankAddress: BASE_SEPOLIA_KITTYCORN_BANK_ADDRESS,
       kittycornPositionManagerAddress: '0x8a2d75baadcd2c71b2acf715fc3da68964cea48e',
       kittycornMigratorAddress: '0x3dd320984b954453d09f69b95d4c9f5bc92a9a58',
+      // TODO(new Bank proxy): router / PositionManager / Migrator may be redeployed with the new Bank; recheck all.
+      // KittycornRouter, from kittycorn-interface design/kittycorn-api-spec.md (code present on-chain)
+      kittycornRouterAddress: '0x137a906e06ec20808c8f156f9024196427429220',
+      // Kittycorn Universal Router wrapper, the only swap router the interface uses on base-sepolia
+      // (kittycorn-interface develop apps/web/src/constants/index.tsx BASE_SEPOLIA_ADDRESSES.KittycornRouter)
+      universalRouterAddress: '0x02d353c5ca5e316bbd99fac6a481eb8b778ea67d',
+      // KittycornMarket is not deployed yet (kittycorn-contracts #72 is still open)
+      kittycornMarketAddress: '',
     }
   } else {
     throw new Error('Unsupported Network')

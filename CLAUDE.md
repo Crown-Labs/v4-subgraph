@@ -37,7 +37,7 @@ On Apple Silicon, graph-node only ships `linux/amd64` images, so the compose fil
 
 ## Architecture Overview
 
-This is a Uniswap V4 subgraph modified for Kittycorn, tracking DEX activity and lending functionality. The subgraph indexes three main contracts:
+This is a Uniswap V4 subgraph modified for Kittycorn, tracking DEX activity and lending functionality. The subgraph indexes three main contracts plus one template:
 
 ### Core Data Sources
 
@@ -52,8 +52,24 @@ This is a Uniswap V4 subgraph modified for Kittycorn, tracking DEX activity and 
    - Tracks subscriptions, unsubscriptions, and transfers
 
 3. **KittycornBank** (Lending protocol)
+
    - Manages borrowing/lending functionality
    - Handles collateral configuration and liquidations
+
+4. **Tokenize** (template, Earn)
+   - ERC-4626 tToken vaults, one data source per vault, created by `handleSetConfigTokenize` on the Bank
+   - `src/mappings/earn.ts` maintains `EarnVault`, `EarnPosition` and the immutable `EarnEvent` log
+   - `src/utils/earn.ts` `isEarnExcludedAddress` keeps protocol holders (zero, vault, Bank, PoolManager, Kittycorn PositionManager / Migrator / Router / Universal Router / Market from `chains.ts`) out of Earn, per side of each transfer
+   - Post-deploy check (read-only): `SUBGRAPH_URL=... RPC_URL=<archive> node scripts/verify-earn.mjs [--logs]`
+
+### Changing the base-sepolia Bank (new proxy)
+
+The Bank address lives in two files because the manifest and the mappings are built separately:
+
+- `networks.json` → `base-sepolia.KittycornBank` (`address` = the **proxy**, `startBlock` = proxy creation block, which must be ≤ every `SetConfigTokenize` you want indexed)
+- `src/utils/chains.ts` → `BASE_SEPOLIA_KITTYCORN_BANK_ADDRESS`
+
+Both currently hold the pre-proxy Bank as a TODO placeholder. `node scripts/verify-earn.mjs --config-only` fails if they differ. Earn handlers read the Bank from `EarnVault.bank` (the emitter of `SetConfigTokenize`), so Earn follows the manifest. Refresh `abis/KittycornBank.json` / `abis/Tokenize.json` as described in `abis/PROVENANCE.md`.
 
 ### Key Mappings
 
