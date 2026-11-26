@@ -136,6 +136,7 @@ export function handleSetConfigCollateralHelper(
       )
     }
     kittycornPositionManager.save()
+    updateKittycornDayData(event.block, kittycornPositionManagerAddress)
   }
   if (pool !== null) {
     poolCollateral.pool = pool.id

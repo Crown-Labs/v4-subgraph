@@ -42,7 +42,7 @@ export function updateUniswapDayData(event: ethereum.Event, poolId: string): Uni
 
 /**
  * Tracks global aggregate data over daily windows
- * @param event
+ * @param block the block of the event, or of the daily snapshot block handler
  */
 export function updateKittycornDayData(
   block: ethereum.Block,
