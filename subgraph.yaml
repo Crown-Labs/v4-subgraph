@@ -63,6 +63,7 @@ dataSources:
         - handler: handleKittycornDailySnapshot
           filter:
             kind: polling
+            # blocks, not seconds: about 2 hours on Base Sepolia, 15 minutes on Arbitrum
             every: 3600
       eventHandlers:
         - event: Subscription(indexed uint256,indexed address)
