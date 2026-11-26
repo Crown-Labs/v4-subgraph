@@ -46,6 +46,10 @@ export const TEST_CONFIG: SubgraphConfig = {
   kittycornBankAddress: KITTYCORN_BANK_ADDRESS,
   kittycornPositionManagerAddress: KITTYCORN_POSITION_MANAGER_ADDRESS,
   kittycornMigratorAddress: KITTYCORN_MIGRATOR_ADDRESS,
+  kittycornRouterAddress: '',
+  universalRouterAddress: '',
+  kittycornMarketAddress: '',
+  earnExcludedExtraAddresses: [],
 }
 
 export class TokenFixture {

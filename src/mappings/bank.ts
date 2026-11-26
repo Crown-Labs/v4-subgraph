@@ -318,7 +318,8 @@ export function handleLiquidatePositionHelper(
   liqPosition.positionValue = event.params.positionValue
   liqPosition.repayValue = repayValue
   liqPosition.liquidateFeeValue = event.params.liquidateFeeValue
-  liqPosition.protocolFee = event.params.protocolFee
+  // underlying surplus returned to the owner, not a protocol fee (see schema.graphql LiquidatePosition.surplusAmount)
+  liqPosition.surplusAmount = event.params.surplusAmount
   liqPosition.txHash = event.transaction.hash.toHexString()
   liqPosition.timestamp = event.block.timestamp
   liqPosition.token0 = token0.id
@@ -351,14 +352,14 @@ export function handleLiquidatePositionHelper(
     positionDaily.totalCount = ZERO_BI
     positionDaily.liquidateValueAccumulate = ZERO_BI
     positionDaily.liquidateFeeValueAccumulate = ZERO_BI
-    positionDaily.protocolFeeAccumulate = ZERO_BI
+    positionDaily.surplusAmountAccumulate = ZERO_BI
   }
   positionDaily.totalCount = positionDaily.totalCount.plus(ONE_BI)
   positionDaily.liquidateValueAccumulate = positionDaily.liquidateValueAccumulate.plus(liqPosition.positionValue)
   positionDaily.liquidateFeeValueAccumulate = positionDaily.liquidateFeeValueAccumulate.plus(
     liqPosition.liquidateFeeValue,
   )
-  positionDaily.protocolFeeAccumulate = positionDaily.protocolFeeAccumulate.plus(liqPosition.protocolFee)
+  positionDaily.surplusAmountAccumulate = positionDaily.surplusAmountAccumulate.plus(liqPosition.surplusAmount)
 
   position.save()
   kittycornDayData.save()

@@ -69,7 +69,25 @@ export class SubgraphConfig {
 
   // address of the kittycorn migrator contract
   kittycornMigratorAddress: string
+
+  // Kittycorn router / Universal Router wrapper / market contracts. Used only by the Earn exclusion list
+  // (src/utils/earn.ts): these contracts hold tTokens transiently and are not Earn users. '' = not deployed.
+  kittycornRouterAddress: string
+  universalRouterAddress: string
+  kittycornMarketAddress: string
+
+  // Other contracts that are never Earn users (e.g. Kittycorn strategy vaults). Used only by the Earn exclusion list
+  // (src/utils/earn.ts); lowercase addresses, empty for networks without such contracts.
+  earnExcludedExtraAddresses: string[]
 }
+
+// base-sepolia KittycornBank: the TransparentUpgradeableProxy (kittycorn-contracts #75), created at block 63766069.
+// Change it together with networks.json["base-sepolia"].KittycornBank (address + startBlock = proxy creation block),
+// which is the only other place it appears; `node scripts/verify-earn.mjs --config-only` checks that they match.
+// History of the previous (pre-proxy) Bank 0xcc331ec1d6cf4542f9eb988b49249cfa163081dc is intentionally not indexed.
+// Earn handlers do not read this constant: the Tokenize template receives the Bank address from the data source
+// that created it, so Earn always follows the manifest.
+export const BASE_SEPOLIA_KITTYCORN_BANK_ADDRESS = '0x421cb4490c79727ec961c8fd214a98474425bdde'
 
 export function getSubgraphConfig(): SubgraphConfig {
   // Update this value to the corresponding chain you want to deploy
@@ -139,6 +157,11 @@ export function getSubgraphConfig(): SubgraphConfig {
       kittycornBankAddress: '0xf0e778f51865b9c3bcbfe2b59ad19a12d6d1a0fc',
       kittycornPositionManagerAddress: '0x0989f4a52cc70099392b38e3d405e4f515d12630',
       kittycornMigratorAddress: '0xc78c603644b59ccbc869fa36b72ade24c9e04c40',
+      // Earn is not indexed on arbitrum-one (only base-sepolia is in scope); unknown, left empty
+      kittycornRouterAddress: '',
+      universalRouterAddress: '',
+      kittycornMarketAddress: '',
+      earnExcludedExtraAddresses: [],
     }
   } else if (selectedNetwork == BASE_SEPOLIA_NETWORK_NAME) {
     return {
@@ -159,14 +182,16 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f', // USDC (Aave testnet)
         '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a', // USDT (Aave testnet)
         '0x4200000000000000000000000000000000000006', // WETH
-        '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0', // tWETH
-        '0x0b4104691a6a006f0134d507aae6d35854bad924', // tUSDC
-        '0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc', // tUSDT
+        '0x54270025def2f08333cfbb8a68d9a94b6ac20f20', // tWETH
+        '0x9fffc7710fd0df623a4007904516db6b323710a7', // tUSDC
+        '0xaf6adc15309e143de39d3ae8b9ed2f829e9b0bf2', // tUSDT
       ],
+      // tToken <-> underlying pairs registered on the Bank proxy (SetConfigTokenize at blocks 63766101 / 63766114 /
+      // 63766128; getSupportUnderlyingByTokenize returns these underlyings)
       tokenizes: [
-        ['0xd09edda7a0495eac6b921fb9408d2ae55220ebc0', '0x4200000000000000000000000000000000000006'], // tWETH
-        ['0x0b4104691a6a006f0134d507aae6d35854bad924', '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'], // tUSDC
-        ['0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc', '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a'], // tUSDT
+        ['0x54270025def2f08333cfbb8a68d9a94b6ac20f20', '0x4200000000000000000000000000000000000006'], // tWETH
+        ['0x9fffc7710fd0df623a4007904516db6b323710a7', '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'], // tUSDC
+        ['0xaf6adc15309e143de39d3ae8b9ed2f829e9b0bf2', '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a'], // tUSDT
       ],
       tokenOverrides: [],
       poolsToSkip: [],
@@ -178,9 +203,21 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0xcc331ec1d6cf4542f9eb988b49249cfa163081dc',
-      kittycornPositionManagerAddress: '0x8a2d75baadcd2c71b2acf715fc3da68964cea48e',
-      kittycornMigratorAddress: '0x3dd320984b954453d09f69b95d4c9f5bc92a9a58',
+      kittycornBankAddress: BASE_SEPOLIA_KITTYCORN_BANK_ADDRESS,
+      // Kittycorn deployment for the Bank proxy above (deployer 0xcccc55668b6e7398a7697fabfe7ec76f7fa2e075)
+      kittycornPositionManagerAddress: '0xd74e9c7d8299a54173db52e9e5d976050196a625',
+      kittycornMigratorAddress: '0x59287241a99b9020edc83788011384cf524697c3',
+      kittycornRouterAddress: '0xed7be201640f0a06defe6f13e6da1905137cc9e1',
+      // Kittycorn Universal Router wrapper, the swap router the interface uses on base-sepolia
+      universalRouterAddress: '0x8a227466891feec628d6a9168806377464683656',
+      // KittycornMarket is not deployed yet (kittycorn-contracts #72 is still open)
+      kittycornMarketAddress: '',
+      // Kittycorn strategy vaults: protocol contracts, never Earn users
+      earnExcludedExtraAddresses: [
+        '0x2757067620365066ddf03294db1c7fce00a961f6', // kcETHHEDGE
+        '0xbc4d353322b97c43a931906c051ca4aabf221309', // kcETHLONG
+        '0x85d7ba35f2c1b7be182294193c65152bd366964f', // kcETHHOLD
+      ],
     }
   } else {
     throw new Error('Unsupported Network')

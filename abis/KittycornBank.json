@@ -6,33 +6,7 @@
   },
   {
     "type": "function",
-    "name": "FRACTION_PRECISION",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
     "name": "PERCENT_PRECISION",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "RESERVE_PRECISION",
     "inputs": [],
     "outputs": [
       {
@@ -66,6 +40,60 @@
     "outputs": [
       {
         "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "borrowAndDepositMargin",
+    "inputs": [
+      {
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_ulToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_marginToken",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_minAmountOut",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_callback",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "share",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -205,6 +233,25 @@
   },
   {
     "type": "function",
+    "name": "collectDebtScaleFee",
+    "inputs": [
+      {
+        "name": "_ulToken",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "scaleFee",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
     "name": "collectPositionCollateral",
     "inputs": [
       {
@@ -242,6 +289,44 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "debtEpoch",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "debtFeeRemainder",
+    "inputs": [
+      {
+        "name": "",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -290,8 +375,13 @@
   },
   {
     "type": "function",
-    "name": "deposit",
+    "name": "depositMargin",
     "inputs": [
+      {
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
       {
         "name": "_ulToken",
         "type": "address",
@@ -303,7 +393,13 @@
         "internalType": "uint256"
       }
     ],
-    "outputs": [],
+    "outputs": [
+      {
+        "name": "share",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -415,7 +511,7 @@
         "internalType": "address"
       },
       {
-        "name": "share",
+        "name": "_share",
         "type": "uint256",
         "internalType": "uint256"
       }
@@ -441,7 +537,7 @@
     ],
     "outputs": [
       {
-        "name": "",
+        "name": "position",
         "type": "tuple",
         "internalType": "struct KittycornPosition",
         "components": [
@@ -467,6 +563,16 @@
           },
           {
             "name": "borrowShare",
+            "type": "uint256",
+            "internalType": "uint256"
+          },
+          {
+            "name": "marginToken",
+            "type": "address",
+            "internalType": "address"
+          },
+          {
+            "name": "marginShare",
             "type": "uint256",
             "internalType": "uint256"
           }
@@ -584,6 +690,114 @@
   },
   {
     "type": "function",
+    "name": "getMarginAmount",
+    "inputs": [
+      {
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMarginRatio",
+    "inputs": [
+      {
+        "name": "_poolKey",
+        "type": "tuple",
+        "internalType": "struct PoolKey",
+        "components": [
+          {
+            "name": "currency0",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "currency1",
+            "type": "address",
+            "internalType": "Currency"
+          },
+          {
+            "name": "fee",
+            "type": "uint24",
+            "internalType": "uint24"
+          },
+          {
+            "name": "tickSpacing",
+            "type": "int24",
+            "internalType": "int24"
+          },
+          {
+            "name": "hooks",
+            "type": "address",
+            "internalType": "contract IHooks"
+          }
+        ]
+      },
+      {
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMaxDeposit",
+    "inputs": [
+      {
+        "name": "_tokenize",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getMaxWithdraw",
+    "inputs": [
+      {
+        "name": "_tokenize",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getOraclePrice",
     "inputs": [
       {
@@ -597,6 +811,30 @@
         "name": "",
         "type": "uint256",
         "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "getOracleSqrtPriceX96",
+    "inputs": [
+      {
+        "name": "_token0",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_token1",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint160",
+        "internalType": "uint160"
       }
     ],
     "stateMutability": "view"
@@ -646,6 +884,11 @@
     "outputs": [
       {
         "name": "liquidationRatio",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "marginRatio",
         "type": "uint256",
         "internalType": "uint256"
       },
@@ -713,7 +956,7 @@
     "name": "getReserveBalance",
     "inputs": [
       {
-        "name": "_ibToken",
+        "name": "_tokenize",
         "type": "address",
         "internalType": "address"
       }
@@ -777,6 +1020,40 @@
   },
   {
     "type": "function",
+    "name": "getSwapMinAmountOut",
+    "inputs": [
+      {
+        "name": "_tokenIn",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_tokenOut",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_amountIn",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_slippage",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
     "name": "getTotalDebtBalance",
     "inputs": [
       {
@@ -829,16 +1106,6 @@
           },
           {
             "name": "liquidity",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "amount0Desired",
-            "type": "uint256",
-            "internalType": "uint256"
-          },
-          {
-            "name": "amount1Desired",
             "type": "uint256",
             "internalType": "uint256"
           },
@@ -903,26 +1170,20 @@
   },
   {
     "type": "function",
-    "name": "lastDebtBalance",
+    "name": "initializeOwner",
     "inputs": [
       {
-        "name": "",
+        "name": "_owner",
         "type": "address",
         "internalType": "address"
       }
     ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
-    "name": "lastReserveBalance",
+    "name": "lastDebtBalance",
     "inputs": [
       {
         "name": "",
@@ -952,6 +1213,11 @@
         "name": "_callback",
         "type": "address",
         "internalType": "address"
+      },
+      {
+        "name": "_data",
+        "type": "bytes",
+        "internalType": "bytes"
       }
     ],
     "outputs": [],
@@ -975,7 +1241,7 @@
     "name": "onERC721Received",
     "inputs": [
       {
-        "name": "",
+        "name": "_operator",
         "type": "address",
         "internalType": "address"
       },
@@ -1070,20 +1336,7 @@
   },
   {
     "type": "function",
-    "name": "positionManager",
-    "inputs": [],
-    "outputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "contract IPositionManager"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "positions",
+    "name": "positionDebtEpoch",
     "inputs": [
       {
         "name": "",
@@ -1093,29 +1346,22 @@
     ],
     "outputs": [
       {
-        "name": "tokenId",
+        "name": "",
         "type": "uint256",
         "internalType": "uint256"
-      },
+      }
+    ],
+    "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "positionManager",
+    "inputs": [],
+    "outputs": [
       {
-        "name": "status",
-        "type": "uint8",
-        "internalType": "enum KittycornPositionStatus"
-      },
-      {
-        "name": "owner",
+        "name": "",
         "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "borrowToken",
-        "type": "address",
-        "internalType": "address"
-      },
-      {
-        "name": "borrowShare",
-        "type": "uint256",
-        "internalType": "uint256"
+        "internalType": "contract IPositionManager"
       }
     ],
     "stateMutability": "view"
@@ -1228,25 +1474,6 @@
     ],
     "outputs": [],
     "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
-    "name": "reserveBalance",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "uint256",
-        "internalType": "uint256"
-      }
-    ],
-    "stateMutability": "view"
   },
   {
     "type": "function",
@@ -1369,19 +1596,6 @@
   },
   {
     "type": "function",
-    "name": "syncReserveBalance",
-    "inputs": [
-      {
-        "name": "_tokenize",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [],
-    "stateMutability": "nonpayable"
-  },
-  {
-    "type": "function",
     "name": "tokenIdToPositionId",
     "inputs": [
       {
@@ -1398,6 +1612,37 @@
       }
     ],
     "stateMutability": "view"
+  },
+  {
+    "type": "function",
+    "name": "tokenizeDepositCallback",
+    "inputs": [
+      {
+        "name": "_amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "tokenizeWithdrawCallback",
+    "inputs": [
+      {
+        "name": "_amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_to",
+        "type": "address",
+        "internalType": "address"
+      }
+    ],
+    "outputs": [],
+    "stateMutability": "nonpayable"
   },
   {
     "type": "function",
@@ -1453,21 +1698,6 @@
         "name": "aavePoolV3",
         "type": "address",
         "internalType": "contract IPool"
-      },
-      {
-        "name": "aaveOracle",
-        "type": "address",
-        "internalType": "contract IPriceOracle"
-      },
-      {
-        "name": "interestRateMode",
-        "type": "uint256",
-        "internalType": "uint256"
-      },
-      {
-        "name": "referalCode",
-        "type": "uint16",
-        "internalType": "uint16"
       }
     ],
     "stateMutability": "view"
@@ -1475,25 +1705,6 @@
   {
     "type": "function",
     "name": "vaultTokenAllowBorrow",
-    "inputs": [
-      {
-        "name": "",
-        "type": "address",
-        "internalType": "address"
-      }
-    ],
-    "outputs": [
-      {
-        "name": "",
-        "type": "bool",
-        "internalType": "bool"
-      }
-    ],
-    "stateMutability": "view"
-  },
-  {
-    "type": "function",
-    "name": "vaultTokenAllowDeposit",
     "inputs": [
       {
         "name": "",
@@ -1531,12 +1742,12 @@
   },
   {
     "type": "function",
-    "name": "withdraw",
+    "name": "withdrawMargin",
     "inputs": [
       {
-        "name": "_tokenize",
-        "type": "address",
-        "internalType": "address"
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
       },
       {
         "name": "_amount",
@@ -1544,7 +1755,81 @@
         "internalType": "uint256"
       }
     ],
-    "outputs": [],
+    "outputs": [
+      {
+        "name": "share",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawMarginAndRepay",
+    "inputs": [
+      {
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_share",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_minAmountOut",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_deadline",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_callback",
+        "type": "address",
+        "internalType": "address"
+      },
+      {
+        "name": "_data",
+        "type": "bytes",
+        "internalType": "bytes"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable"
+  },
+  {
+    "type": "function",
+    "name": "withdrawMarginShare",
+    "inputs": [
+      {
+        "name": "_positionId",
+        "type": "uint256",
+        "internalType": "uint256"
+      },
+      {
+        "name": "_share",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
+    "outputs": [
+      {
+        "name": "amount",
+        "type": "uint256",
+        "internalType": "uint256"
+      }
+    ],
     "stateMutability": "nonpayable"
   },
   {
@@ -1565,6 +1850,37 @@
       },
       {
         "name": "borrowAmount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      }
+    ],
+    "anonymous": false
+  },
+  {
+    "type": "event",
+    "name": "CollectDebtScaleFee",
+    "inputs": [
+      {
+        "name": "ulToken",
+        "type": "address",
+        "indexed": true,
+        "internalType": "address"
+      },
+      {
+        "name": "debtBalance",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "scaleFee",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "pendingFee",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -1630,16 +1946,28 @@
   },
   {
     "type": "event",
-    "name": "Deposit",
+    "name": "DepositMargin",
     "inputs": [
       {
-        "name": "token",
+        "name": "positionId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "ulToken",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
         "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "share",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -1775,7 +2103,7 @@
         "internalType": "uint256"
       },
       {
-        "name": "protocolFee",
+        "name": "surplusAmount",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -1986,16 +2314,28 @@
   },
   {
     "type": "event",
-    "name": "Withdraw",
+    "name": "WithdrawMargin",
     "inputs": [
       {
-        "name": "token",
+        "name": "positionId",
+        "type": "uint256",
+        "indexed": true,
+        "internalType": "uint256"
+      },
+      {
+        "name": "ulToken",
         "type": "address",
         "indexed": true,
         "internalType": "address"
       },
       {
         "name": "amount",
+        "type": "uint256",
+        "indexed": false,
+        "internalType": "uint256"
+      },
+      {
+        "name": "share",
         "type": "uint256",
         "indexed": false,
         "internalType": "uint256"
@@ -2006,6 +2346,11 @@
   {
     "type": "error",
     "name": "AlreadyInitialized",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "CollateralLiquidityZero",
     "inputs": []
   },
   {
@@ -2045,7 +2390,17 @@
   },
   {
     "type": "error",
+    "name": "DeadlinePassed",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InsufficientBalance",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InsufficientCollectedFees",
     "inputs": []
   },
   {
@@ -2070,6 +2425,11 @@
   },
   {
     "type": "error",
+    "name": "InvalidCollateralTransfer",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidDecreasePositionLiquidity",
     "inputs": []
   },
@@ -2090,7 +2450,32 @@
   },
   {
     "type": "error",
+    "name": "InvalidMarginToken",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidMarginWithdrawal",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidOraclePrice",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "InvalidPositionCannotLiquidate",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSlippage",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "InvalidSwapAmount",
     "inputs": []
   },
   {
@@ -2122,6 +2507,16 @@
   },
   {
     "type": "error",
+    "name": "PositionHasMargin",
+    "inputs": []
+  },
+  {
+    "type": "error",
+    "name": "PositionHasNoMargin",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "PositionNotOwned",
     "inputs": []
   },
@@ -2147,17 +2542,17 @@
   },
   {
     "type": "error",
+    "name": "ReentrancyGuardReentrantCall",
+    "inputs": []
+  },
+  {
+    "type": "error",
     "name": "TokenNotAllow",
     "inputs": []
   },
   {
     "type": "error",
     "name": "VaultTokenBorrowNotAllow",
-    "inputs": []
-  },
-  {
-    "type": "error",
-    "name": "VaultTokenDepositNotAllow",
     "inputs": []
   }
 ]
