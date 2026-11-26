@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 0.0.8
 description: Uniswap is a decentralized protocol for automated token exchange on Ethereum.
 repository: https://github.com/Uniswap/v4-subgraph
 schema:
@@ -54,9 +54,16 @@ dataSources:
       file: ./src/mappings/index.ts
       entities:
         - Position
+        - KittycornDayData
+        - KittycornPositionManager
       abis:
         - name: PositionManager
           file: ./abis/PositionManager.json
+      blockHandlers:
+        - handler: handleKittycornDailySnapshot
+          filter:
+            kind: polling
+            every: 3600
       eventHandlers:
         - event: Subscription(indexed uint256,indexed address)
           handler: handleSubscription

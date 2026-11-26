@@ -1,6 +1,7 @@
 import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
-import { afterEach, assert, beforeEach, clearStore, dataSourceMock, describe, test } from 'matchstick-as'
+import { afterEach, assert, beforeEach, clearStore, dataSourceMock, describe, newMockEvent, test } from 'matchstick-as'
 
+import { handleKittycornDailySnapshot } from '../../src/mappings/dailySnapshot'
 import { KittycornDayData, KittycornPositionManager, Pool, PoolManager } from '../../src/types/schema'
 import {
   assertClose,
@@ -99,6 +100,46 @@ describe('interval rows are written from the saved state of the same event', () 
     assert.stringEquals(row.collateralUSD.toString(), kpm().totalCollateralUSD.toString())
     assert.stringEquals(row.tvlUSD.toString(), kpm().totalValueLockedUSD.toString())
     assert.stringEquals(row.txCount.toString(), kpm().txCount.toString())
+  })
+})
+
+describe('handleKittycornDailySnapshot', () => {
+  beforeEach(() => {
+    dataSourceMock.setNetwork(BASE_SEPOLIA_NETWORK)
+    mockBaseSepoliaTokens()
+    initializeReferencePool()
+    initializePool(TOKENIZED_POOL_ID, TUSDC_ADDRESS, TWETH_ADDRESS, Q96, 0)
+    setConfigCollateral(TOKENIZED_POOL_ID)
+    modifyLiquidity(TOKENIZED_POOL_ID, BASE_SEPOLIA_KITTYCORN_PM)
+  })
+
+  afterEach(() => {
+    clearStore()
+    dataSourceMock.resetValues()
+  })
+
+  test('writes a row with the current Kittycorn totals on a day without events', () => {
+    const block = newMockEvent().block
+    block.timestamp = block.timestamp.plus(BigInt.fromI32(3 * 86400))
+    const quietDay = (block.timestamp.toI32() / 86400).toString()
+    assert.assertNull(KittycornDayData.load(quietDay), 'setup: no row on the quiet day')
+
+    handleKittycornDailySnapshot(block)
+
+    const row = KittycornDayData.load(quietDay)!
+    assert.stringEquals(row.tvlUSD.toString(), kpm().totalValueLockedUSD.toString())
+    assert.stringEquals(row.collateralUSD.toString(), kpm().totalCollateralUSD.toString())
+    assert.stringEquals(row.volumeUSD.toString(), '0')
+  })
+
+  test('keeps the volume already recorded on a day with events', () => {
+    swap(TOKENIZED_POOL_ID, Q96, 0)
+    const volumeBefore = KittycornDayData.load(dayId())!.volumeUSD
+    assert.assertTrue(volumeBefore.gt(BigDecimal.zero()), 'setup: swap volume recorded')
+
+    handleKittycornDailySnapshot(newMockEvent().block)
+
+    assert.stringEquals(KittycornDayData.load(dayId())!.volumeUSD.toString(), volumeBefore.toString())
   })
 })
 
