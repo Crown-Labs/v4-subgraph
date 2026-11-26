@@ -7,6 +7,7 @@ import {
   handleRepay,
   handleSetConfigCollateral,
 } from './bank'
+import { handleKittycornDailySnapshot } from './dailySnapshot'
 import { handleModifyLiquidity } from './modifyLiquidity'
 import { handleInitialize } from './poolManager'
 import { handleSubscription } from './subscribe'
@@ -20,6 +21,7 @@ export {
   handleDisableCollateral,
   handleEnableCollateral,
   handleInitialize,
+  handleKittycornDailySnapshot,
   handleLiquidatePosition,
   handleModifyLiquidity,
   handleRepay,

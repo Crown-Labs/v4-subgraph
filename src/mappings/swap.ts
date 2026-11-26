@@ -256,7 +256,7 @@ export function handleSwapHelper(event: SwapEvent, subgraphConfig: SubgraphConfi
 
     // interval data
     const uniswapDayData = updateUniswapDayData(event, poolManagerAddress)
-    const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
+    const kittycornDayData = updateKittycornDayData(event.block, kittycornPositionManagerAddress)
     const poolDayData = updatePoolDayData(event.params.id.toHexString(), event)
     const poolHourData = updatePoolHourData(event.params.id.toHexString(), event)
     const token0DayData = updateTokenDayData(token0, event)

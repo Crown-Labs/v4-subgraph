@@ -42,14 +42,14 @@ export function updateUniswapDayData(event: ethereum.Event, poolId: string): Uni
 
 /**
  * Tracks global aggregate data over daily windows
- * @param event
+ * @param block the block of the event, or of the daily snapshot block handler
  */
 export function updateKittycornDayData(
-  event: ethereum.Event,
+  block: ethereum.Block,
   kittycornPositionManagerAddress: string,
 ): KittycornDayData {
   const kittycorn = loadKittycornPositionManager(kittycornPositionManagerAddress)
-  const timestamp = event.block.timestamp.toI32()
+  const timestamp = block.timestamp.toI32()
   const dayID = timestamp / 86400 // rounded
   const dayStartTimestamp = dayID * 86400
   let kittycornDayData = KittycornDayData.load(dayID.toString())
