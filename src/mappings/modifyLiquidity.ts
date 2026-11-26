@@ -16,6 +16,7 @@ import { getSubgraphConfig, SubgraphConfig } from '../utils/chains'
 import { ONE_BI, ZERO_BI } from '../utils/constants'
 import { convertTokenToDecimal, hexToBigInt, loadKittycornPositionManager, loadTransaction } from '../utils/index'
 import {
+  updateKittycornDayData,
   updatePoolDayData,
   updatePoolHourData,
   updateTokenDayData,
@@ -257,6 +258,9 @@ export function handleModifyLiquidityHelper(
     updateTokenDayData(token1, event)
     updateTokenHourData(token0, event)
     updateTokenHourData(token1, event)
+    if (pool.isKittycornLiquidity || poolCollateral !== null) {
+      updateKittycornDayData(event.block, kittycornPositionManagerAddress)
+    }
 
     if (isKittycornPMAddress) {
       // Convert salt (Bytes) to BigInt for tokenId

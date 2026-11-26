@@ -61,7 +61,7 @@ export function handleRepay(event: Repay): void {
       borrowAsset.totalBorrowAmount = borrowAsset.totalBorrowAmount.minus(repayAmount)
       borrowAsset.save()
     }
-    const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
+    const kittycornDayData = updateKittycornDayData(event.block, kittycornPositionManagerAddress)
     const amountETH = repayFee.times(token.derivedETH)
     const amountUSD = amountETH.times(bundle.ethPriceUSD)
     kittycornDayData.borrowFeesUSD = kittycornDayData.borrowFeesUSD.plus(amountUSD)
@@ -235,7 +235,7 @@ export function handleLiquidatePositionHelper(
   }
 
   const kittycornPositionManagerAddress = subgraphConfig.kittycornPositionManagerAddress
-  const kittycornDayData = updateKittycornDayData(event, kittycornPositionManagerAddress)
+  const kittycornDayData = updateKittycornDayData(event.block, kittycornPositionManagerAddress)
 
   let repayToken = Token.load(event.params.repayToken.toHexString())
   if (repayToken === null) {
