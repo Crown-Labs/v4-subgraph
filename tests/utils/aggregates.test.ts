@@ -1,4 +1,4 @@
-import { BigInt } from '@graphprotocol/graph-ts'
+import { BigDecimal, BigInt } from '@graphprotocol/graph-ts'
 import { afterEach, assert, beforeEach, clearStore, dataSourceMock, describe, test } from 'matchstick-as'
 
 import { KittycornDayData, KittycornPositionManager, Pool, PoolManager } from '../../src/types/schema'
@@ -76,6 +76,18 @@ describe('interval rows are written from the saved state of the same event', () 
     assert.fieldEquals('PoolHourData', TOKENIZED_POOL_ID + '-' + hourId(), 'tvlUSD', p.totalValueLockedUSD.toString())
     assert.fieldEquals('UniswapDayData', dayId(), 'txCount', pm.txCount.toString())
     assert.fieldEquals('UniswapDayData', dayId(), 'tvlUSD', pm.totalValueLockedUSD.toString())
+  })
+
+  test('KittycornDayData after handleModifyLiquidity on a collateral pool carries the updated collateral and TVL', () => {
+    setConfigCollateral(TOKENIZED_POOL_ID)
+    modifyLiquidity(TOKENIZED_POOL_ID, BASE_SEPOLIA_KITTYCORN_PM)
+
+    assert.assertTrue(kpm().totalValueLockedUSD.gt(BigDecimal.zero()), 'setup: Kittycorn TVL added')
+    const row = KittycornDayData.load(dayId())
+    assert.assertNotNull(row, 'KittycornDayData row written on the liquidity day')
+    assert.stringEquals(row!.collateralUSD.toString(), kpm().totalCollateralUSD.toString())
+    assert.stringEquals(row!.tvlUSD.toString(), kpm().totalValueLockedUSD.toString())
+    assert.stringEquals(row!.txCount.toString(), kpm().txCount.toString())
   })
 
   test('KittycornDayData after a swap on a collateral pool carries the updated collateral and TVL', () => {
