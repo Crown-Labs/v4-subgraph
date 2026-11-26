@@ -91,6 +91,14 @@ describe('interval rows are written from the saved state of the same event', () 
     assert.stringEquals(row!.txCount.toString(), kpm().txCount.toString())
   })
 
+  test('KittycornDayData after configuring a pool that already holds liquidity carries the new collateral', () => {
+    modifyLiquidity(TOKENIZED_POOL_ID, BASE_SEPOLIA_KITTYCORN_PM)
+    setConfigCollateral(TOKENIZED_POOL_ID)
+
+    assert.assertTrue(kpm().totalCollateralUSD.gt(BigDecimal.zero()), 'setup: collateral added')
+    assert.stringEquals(KittycornDayData.load(dayId())!.collateralUSD.toString(), kpm().totalCollateralUSD.toString())
+  })
+
   test('KittycornDayData after a swap on a collateral pool carries the updated collateral and TVL', () => {
     setConfigCollateral(TOKENIZED_POOL_ID)
     modifyLiquidity(TOKENIZED_POOL_ID, BASE_SEPOLIA_KITTYCORN_PM)
