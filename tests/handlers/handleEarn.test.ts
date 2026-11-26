@@ -29,21 +29,24 @@ import { ADDRESS_ZERO } from '../../src/utils/constants'
 import {
   D417_TUSDC_BALANCE_AT_FINAL_BLOCK,
   D417_TUSDC_EVENTS,
+  D417_TUSDC_VAULT,
   D417_TUSDT_BALANCE_AT_FINAL_BLOCK,
   D417_TUSDT_EVENTS,
+  D417_TUSDT_VAULT,
   D417_USER,
   EarnFixtureEvent,
 } from './earnD417Fixture'
 
 // Runs against the real base-sepolia config in src/utils/chains.ts (no injected config).
 const BASE_SEPOLIA = 'base-sepolia'
-const BANK = '0xcc331ec1d6cf4542f9eb988b49249cfa163081dc'
+const BANK = '0x421cb4490c79727ec961c8fd214a98474425bdde' // Bank proxy
 const POOL_MANAGER = '0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408'
-const KITTYCORN_PM = '0x8a2d75baadcd2c71b2acf715fc3da68964cea48e'
-const KITTYCORN_ROUTER = '0x137a906e06ec20808c8f156f9024196427429220'
+const KITTYCORN_PM = '0xd74e9c7d8299a54173db52e9e5d976050196a625'
+const KITTYCORN_ROUTER = '0xed7be201640f0a06defe6f13e6da1905137cc9e1'
+const STRATEGY_VAULT = '0x85d7ba35f2c1b7be182294193c65152bd366964f' // kcETHHOLD
 
-const TUSDC = '0x0b4104691a6a006f0134d507aae6d35854bad924'
-const TUSDT = '0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc'
+const TUSDC = '0x9fffc7710fd0df623a4007904516db6b323710a7'
+const TUSDT = '0xaf6adc15309e143de39d3ae8b9ed2f829e9b0bf2'
 const AAVE_USDC = '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'
 const AAVE_USDT = '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a'
 const IB_USDC = '0x10f1a9d11cdf50041f3f8cb7191cbe2f31750acc'
@@ -499,6 +502,29 @@ describe('Earn deposit / withdraw / transfer', () => {
     assert.notInStore('EarnEvent', earnEventId(TX_C, 2) + '-out')
   })
 
+  test('transfers to and from a strategy vault write only the user-side row', () => {
+    handleEarnTransferHelper(transferEvent(TUSDC, ADDRESS_ZERO, ALICE, '1000000', 200, 1, TX_A))
+
+    mockConvertToAssets(TUSDC, '100000', '100002')
+    handleEarnTransferHelper(transferEvent(TUSDC, ALICE, STRATEGY_VAULT, '100000', 300, 10, TX_B))
+    mockConvertToAssets(TUSDC, '40000', '40001')
+    handleEarnTransferHelper(transferEvent(TUSDC, STRATEGY_VAULT, ALICE, '40000', 301, 2, TX_C))
+
+    assert.notInStore('EarnPosition', positionId(TUSDC, STRATEGY_VAULT))
+    const id = positionId(TUSDC, ALICE)
+    assert.fieldEquals('EarnPosition', id, 'shares', '940000')
+    assert.fieldEquals('EarnPosition', id, 'transferredOut', '100002')
+    assert.fieldEquals('EarnPosition', id, 'transferredIn', '40001')
+    assert.fieldEquals('EarnVault', TUSDC, 'earnShares', '940000')
+    assert.fieldEquals('EarnVault', TUSDC, 'protocolShares', '60000')
+
+    assert.entityCount('EarnEvent', 2)
+    assert.fieldEquals('EarnEvent', earnEventId(TX_B, 10) + '-out', 'counterparty', STRATEGY_VAULT)
+    assert.notInStore('EarnEvent', earnEventId(TX_B, 10) + '-in')
+    assert.fieldEquals('EarnEvent', earnEventId(TX_C, 2) + '-in', 'counterparty', STRATEGY_VAULT)
+    assert.notInStore('EarnEvent', earnEventId(TX_C, 2) + '-out')
+  })
+
   test('self transfer changes nothing and writes no EarnEvent (documented behavior)', () => {
     handleEarnTransferHelper(transferEvent(TUSDC, ADDRESS_ZERO, ALICE, '1000000', 200, 1, TX_A))
     // no convertToAssets mock for 500000: the handler must not even value a self transfer
@@ -564,10 +590,11 @@ describe('0xD417 real base-sepolia fixture', () => {
   })
 
   test('tUSDC: 1 deposit + 18 swaps via the PoolManager; shares match on-chain balanceOf', () => {
-    configureTUSDC()
-    replay(TUSDC, D417_TUSDC_EVENTS)
+    mockVaultMetadata(D417_TUSDC_VAULT, 'tUSDC', AAVE_USDC, 'USDC')
+    handleSetConfigTokenizeHelper(setConfigTokenizeEvent(D417_TUSDC_VAULT, IB_USDC, AAVE_USDC, 100))
+    replay(D417_TUSDC_VAULT, D417_TUSDC_EVENTS)
 
-    const id = positionId(TUSDC, D417_USER)
+    const id = positionId(D417_TUSDC_VAULT, D417_USER)
     // independent check: tUSDC.balanceOf(0xD417) at the last event block
     assert.fieldEquals('EarnPosition', id, 'shares', D417_TUSDC_BALANCE_AT_FINAL_BLOCK)
     assert.fieldEquals('EarnPosition', id, 'deposited', '2000000')
@@ -588,7 +615,7 @@ describe('0xD417 real base-sepolia fixture', () => {
     // 1 DEPOSIT + 9 TRANSFER_OUT + 9 TRANSFER_IN, none for the PoolManager, none for the mint
     assert.entityCount('EarnEvent', 19)
     assert.i32Equals(position.events.load().length, 19)
-    assert.notInStore('EarnPosition', positionId(TUSDC, POOL_MANAGER))
+    assert.notInStore('EarnPosition', positionId(D417_TUSDC_VAULT, POOL_MANAGER))
     assert.fieldEquals(
       'EarnEvent',
       earnEventId('0xca2865570c371c9b541f79deccd2a87ff9334a38f63455ffbea04d39babb2ac3', 19),
@@ -599,15 +626,15 @@ describe('0xD417 real base-sepolia fixture', () => {
       'EarnEvent',
       earnEventId('0xca2865570c371c9b541f79deccd2a87ff9334a38f63455ffbea04d39babb2ac3', 18),
     )
-    assert.fieldEquals('EarnVault', TUSDC, 'sharePrice', '1000027')
+    assert.fieldEquals('EarnVault', D417_TUSDC_VAULT, 'sharePrice', '1000027')
   })
 
   test('tUSDT: position acquired only through swaps, fully exited', () => {
-    mockVaultMetadata(TUSDT, 'tUSDT', AAVE_USDT, 'USDT')
-    handleSetConfigTokenizeHelper(setConfigTokenizeEvent(TUSDT, IB_USDT, AAVE_USDT, 100))
-    replay(TUSDT, D417_TUSDT_EVENTS)
+    mockVaultMetadata(D417_TUSDT_VAULT, 'tUSDT', AAVE_USDT, 'USDT')
+    handleSetConfigTokenizeHelper(setConfigTokenizeEvent(D417_TUSDT_VAULT, IB_USDT, AAVE_USDT, 100))
+    replay(D417_TUSDT_VAULT, D417_TUSDT_EVENTS)
 
-    const id = positionId(TUSDT, D417_USER)
+    const id = positionId(D417_TUSDT_VAULT, D417_USER)
     assert.fieldEquals('EarnPosition', id, 'shares', D417_TUSDT_BALANCE_AT_FINAL_BLOCK)
     assert.fieldEquals('EarnPosition', id, 'deposited', '0')
     assert.fieldEquals('EarnPosition', id, 'transferredIn', '900837')
@@ -616,8 +643,8 @@ describe('0xD417 real base-sepolia fixture', () => {
     const position = EarnPosition.load(id)!
     const firstDepositBlock = position.firstDepositBlock
     assert.assertTrue(firstDepositBlock === null)
-    assert.fieldEquals('EarnVault', TUSDT, 'activePositionCount', '0')
-    assert.fieldEquals('EarnVault', TUSDT, 'positionCount', '1')
+    assert.fieldEquals('EarnVault', D417_TUSDT_VAULT, 'activePositionCount', '0')
+    assert.fieldEquals('EarnVault', D417_TUSDT_VAULT, 'positionCount', '1')
     assert.entityCount('EarnEvent', 18)
     const first = EarnEvent.load(earnEventId(D417_TUSDT_EVENTS[0].txHash, D417_TUSDT_EVENTS[0].logIndex) + '-in')!
     assert.stringEquals('TRANSFER_IN', first.type)

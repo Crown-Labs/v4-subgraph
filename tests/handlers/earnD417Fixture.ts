@@ -20,6 +20,12 @@ export class EarnFixtureEvent {
 
 export const D417_USER = '0xd417e6728ce6efbf01ba5d52229ffd565d2e8ad0'
 
+// The tUSDC / tUSDT vaults this activity was recorded from (the deployment before the Bank proxy). The handlers are
+// address-agnostic: the replay passes the vault as the event emitter, and every counterparty is the zero address, the
+// PoolManager (unchanged across deployments) or the user, so the fixture does not depend on the tokenizes in chains.ts.
+export const D417_TUSDC_VAULT = '0x0b4104691a6a006f0134d507aae6d35854bad924'
+export const D417_TUSDT_VAULT = '0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc'
+
 export const D417_TUSDC_FINAL_BLOCK = 62383476
 // tToken.balanceOf(0xD417...) at D417_TUSDC_FINAL_BLOCK
 export const D417_TUSDC_BALANCE_AT_FINAL_BLOCK = '1999754'

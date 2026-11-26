@@ -9,8 +9,9 @@ function matches(address: Address, configured: string): boolean {
 
 // True for addresses that hold tTokens on behalf of the protocol and therefore never get an EarnPosition or an
 // EarnEvent: the zero address (mint/burn), the vault itself, the Bank that registered the vault (margin escrow),
-// the PoolManager (LP liquidity, swap counterparty) and the Kittycorn PositionManager / Migrator / Router /
-// Universal Router wrapper / Market (transient balances while minting, redeeming or routing).
+// the PoolManager (LP liquidity, swap counterparty), the Kittycorn PositionManager / Migrator / Router /
+// Universal Router wrapper / Market (transient balances while minting, redeeming or routing) and any
+// config.earnExcludedExtraAddresses (e.g. the Kittycorn strategy vaults).
 //
 // The check runs per side of a Transfer: a wallet that swaps tTokens through the PoolManager is still booked,
 // only the PoolManager side is skipped.
@@ -33,6 +34,9 @@ export function isEarnExcludedAddress(
   if (matches(address, config.kittycornRouterAddress)) return true
   if (matches(address, config.universalRouterAddress)) return true
   if (matches(address, config.kittycornMarketAddress)) return true
+  for (let i = 0; i < config.earnExcludedExtraAddresses.length; i++) {
+    if (matches(address, config.earnExcludedExtraAddresses[i])) return true
+  }
   return false
 }
 

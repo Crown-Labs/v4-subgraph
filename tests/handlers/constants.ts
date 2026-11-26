@@ -49,6 +49,7 @@ export const TEST_CONFIG: SubgraphConfig = {
   kittycornRouterAddress: '',
   universalRouterAddress: '',
   kittycornMarketAddress: '',
+  earnExcludedExtraAddresses: [],
 }
 
 export class TokenFixture {

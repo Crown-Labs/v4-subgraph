@@ -7,8 +7,8 @@ import { TEST_CONFIG } from '../handlers/constants'
 
 const WETH = '0x4200000000000000000000000000000000000006'
 const USDC = '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'
-const TUSDC = '0x0b4104691a6a006f0134d507aae6d35854bad924'
-const TWETH = '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0'
+const TUSDC = '0x9fffc7710fd0df623a4007904516db6b323710a7'
+const TWETH = '0x54270025def2f08333cfbb8a68d9a94b6ac20f20'
 const RANDOM_A = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'
 const RANDOM_B = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb'
 
@@ -42,6 +42,7 @@ function restrictedConfig(): SubgraphConfig {
     kittycornRouterAddress: TEST_CONFIG.kittycornRouterAddress,
     universalRouterAddress: TEST_CONFIG.universalRouterAddress,
     kittycornMarketAddress: TEST_CONFIG.kittycornMarketAddress,
+    earnExcludedExtraAddresses: TEST_CONFIG.earnExcludedExtraAddresses,
   }
 }
 
