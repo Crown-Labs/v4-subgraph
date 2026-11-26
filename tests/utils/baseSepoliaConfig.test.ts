@@ -23,8 +23,8 @@ const BASE_SEPOLIA_NETWORK = 'base-sepolia'
 
 const USDC_ADDRESS = '0x036cbd53842c5426634e7929541ec2318f3dcf7e'
 const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
-const TWETH_ADDRESS = '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0'
-const TUSDC_ADDRESS = '0x0b4104691a6a006f0134d507aae6d35854bad924'
+const TWETH_ADDRESS = '0x54270025def2f08333cfbb8a68d9a94b6ac20f20'
+const TUSDC_ADDRESS = '0x9fffc7710fd0df623a4007904516db6b323710a7'
 const AAVE_USDC_ADDRESS = '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f' // underlying of tUSDC, a configured stablecoin
 
 // USDC/WETH 1% reference pool (stablecoinWrappedNativePoolId)

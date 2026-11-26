@@ -19,12 +19,12 @@
       "startBlock": 19088197
     },
     "PositionManager": {
-      "address": "0x8a2D75bAadcd2C71b2aCF715fc3Da68964CEA48e",
-      "startBlock": 56728536
+      "address": "0xd74e9C7d8299A54173DB52E9E5d976050196a625",
+      "startBlock": 63766074
     },
     "KittycornBank": {
-      "address": "0xcc331eC1d6CF4542F9eB988B49249cfa163081dc",
-      "startBlock": 56728536
+      "address": "0x421Cb4490c79727EC961c8fD214a98474425BDdE",
+      "startBlock": 63766069
     }
   }
 }

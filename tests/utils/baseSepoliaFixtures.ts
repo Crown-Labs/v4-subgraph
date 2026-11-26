@@ -15,12 +15,12 @@ export const BASE_SEPOLIA_NETWORK = 'base-sepolia'
 export const ARBITRUM_ONE_NETWORK = 'arbitrum-one'
 
 export const BASE_SEPOLIA_POOL_MANAGER = '0x05e73354cfdd6745c338b50bcfdfa3aa6fa03408'
-export const BASE_SEPOLIA_KITTYCORN_PM = '0x8a2d75baadcd2c71b2acf715fc3da68964cea48e'
+export const BASE_SEPOLIA_KITTYCORN_PM = '0xd74e9c7d8299a54173db52e9e5d976050196a625'
 
 export const USDC_ADDRESS = '0x036cbd53842c5426634e7929541ec2318f3dcf7e'
 export const WETH_ADDRESS = '0x4200000000000000000000000000000000000006'
-export const TWETH_ADDRESS = '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0'
-export const TUSDC_ADDRESS = '0x0b4104691a6a006f0134d507aae6d35854bad924'
+export const TWETH_ADDRESS = '0x54270025def2f08333cfbb8a68d9a94b6ac20f20'
+export const TUSDC_ADDRESS = '0x9fffc7710fd0df623a4007904516db6b323710a7'
 export const AAVE_USDC_ADDRESS = '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f' // underlying of tUSDC
 export const AAVE_USDT_ADDRESS = '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a' // underlying of tUSDT
 

@@ -159,14 +159,14 @@ export function getSubgraphConfig(): SubgraphConfig {
         '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f', // USDC (Aave testnet)
         '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a', // USDT (Aave testnet)
         '0x4200000000000000000000000000000000000006', // WETH
-        '0xd09edda7a0495eac6b921fb9408d2ae55220ebc0', // tWETH
-        '0x0b4104691a6a006f0134d507aae6d35854bad924', // tUSDC
-        '0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc', // tUSDT
+        '0x54270025def2f08333cfbb8a68d9a94b6ac20f20', // tWETH
+        '0x9fffc7710fd0df623a4007904516db6b323710a7', // tUSDC
+        '0xaf6adc15309e143de39d3ae8b9ed2f829e9b0bf2', // tUSDT
       ],
       tokenizes: [
-        ['0xd09edda7a0495eac6b921fb9408d2ae55220ebc0', '0x4200000000000000000000000000000000000006'], // tWETH
-        ['0x0b4104691a6a006f0134d507aae6d35854bad924', '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'], // tUSDC
-        ['0x94572cd65df8daa3a8da96277ffa2a22ee71b5dc', '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a'], // tUSDT
+        ['0x54270025def2f08333cfbb8a68d9a94b6ac20f20', '0x4200000000000000000000000000000000000006'], // tWETH
+        ['0x9fffc7710fd0df623a4007904516db6b323710a7', '0xba50cd2a20f6da35d788639e581bca8d0b5d4d5f'], // tUSDC
+        ['0xaf6adc15309e143de39d3ae8b9ed2f829e9b0bf2', '0x0a215d8ba66387dca84b284d18c3b4ec3de6e54a'], // tUSDT
       ],
       tokenOverrides: [],
       poolsToSkip: [],
@@ -178,9 +178,9 @@ export function getSubgraphConfig(): SubgraphConfig {
         name: 'Ethereum',
         decimals: BigInt.fromI32(18),
       },
-      kittycornBankAddress: '0xcc331ec1d6cf4542f9eb988b49249cfa163081dc',
-      kittycornPositionManagerAddress: '0x8a2d75baadcd2c71b2acf715fc3da68964cea48e',
-      kittycornMigratorAddress: '0x3dd320984b954453d09f69b95d4c9f5bc92a9a58',
+      kittycornBankAddress: '0x421cb4490c79727ec961c8fd214a98474425bdde',
+      kittycornPositionManagerAddress: '0xd74e9c7d8299a54173db52e9e5d976050196a625',
+      kittycornMigratorAddress: '0x59287241a99b9020edc83788011384cf524697c3',
     }
   } else {
     throw new Error('Unsupported Network')
