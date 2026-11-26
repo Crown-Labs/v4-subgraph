@@ -529,7 +529,9 @@ type LiquidatePosition @entity {
   positionValue: BigInt!
   repayValue: BigDecimal!
   liquidateFeeValue: BigInt!
-  protocolFee: BigInt!
+  # last LiquidatePosition event param: underlying surplus returned to the position owner after the debt is
+  # repaid (the Bank renamed it from protocolFee in kittycorn-contracts 64304c6; it was never a protocol fee)
+  surplusAmount: BigInt!
   txHash: String!
   timestamp: BigInt!
   token0: Token!
@@ -550,7 +552,8 @@ type LiquidatePositionDaily @entity {
   totalCount: BigInt!
   liquidateValueAccumulate: BigInt!
   liquidateFeeValueAccumulate: BigInt!
-  protocolFeeAccumulate: BigInt!
+  # sum of LiquidatePosition.surplusAmount for the day
+  surplusAmountAccumulate: BigInt!
 }
 
 type LiquidityPosition @entity {
